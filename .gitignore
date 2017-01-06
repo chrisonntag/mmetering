@@ -3,6 +3,7 @@
 # own files #
 my.cnf
 .idea/
+mmetering/migrations
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
