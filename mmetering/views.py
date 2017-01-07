@@ -5,7 +5,7 @@ from mmetering.models import Flat, Meter, MeterData
 
 def render_home(request):
   data = MeterData.objects.all()
-  import_ids = data.filter(meter__flat__mode__exact='IM').values('meter_id').annotate(max_value=Max('value')).order_by()
+  import_ids = data.filter(meter__flat__modus__exact='IM').values('meter_id').annotate(max_value=Max('value')).order_by()
 
   q_statement = Q()
   for pair in import_ids:
@@ -20,8 +20,8 @@ def render_home(request):
     request,
     'mmetering/home.html',
     {
-      'verbraucher': Flat.objects.filter(mode='IM'),
-      'lieferaten': Flat.objects.filter(mode='EX'),
+      'verbraucher': Flat.objects.filter(modus='IM'),
+      'lieferaten': Flat.objects.filter(modus='EX'),
       'total': sum(data.filter(q_statement).values_list('value', flat=True).distinct()),
       'flats': Flat.objects.all(),
       'meter': Meter.objects.all(),

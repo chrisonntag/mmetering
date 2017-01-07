@@ -8,24 +8,24 @@ class Flat(models.Model):
         ('IM', 'Import'),
         ('EX', 'Export'),
     )
-    desc = models.CharField(max_length=200, help_text="e.g. apartment number")
-    mode = models.CharField(default='IM', max_length=2, choices=MODE_TYPES)
+    name = models.CharField(max_length=200, help_text="z.B. Wohnungsnummer")
+    modus = models.CharField(default='IM', max_length=2, choices=MODE_TYPES)
 
     def __str__(self):
         return self.desc
 
 class Meter(models.Model):
     flat = models.OneToOneField(Flat)
-    uuid = models.IntegerField(default=0, help_text="Address on which the meter is accessable")
-    serial = models.CharField(max_length=45, help_text="Serialnumber making the meter unique")
+    addresse = models.IntegerField(default=0, help_text="Addresse, auf der der Zähler erreichbar ist")
+    seriennummer = models.CharField(max_length=45, help_text="Seriennummer (hinten auf Zähler)")
     init_datetime = models.DateTimeField()
-    start_date = models.DateField(null=True, blank=True)
-    start_time = models.TimeField(null=True, blank=True)
-    end_date = models.DateField(null=True, blank=True)
-    end_time = models.TimeField(null=True, blank=True)
+    start_datum = models.DateField(null=True, blank=True, help_text="wird automatisch ausgefüllt")
+    start_zeit = models.TimeField(null=True, blank=True, help_text="wird automatisch ausgefüllt")
+    end_datum = models.DateField(null=True, blank=True, help_text="wird automatisch ausgefüllt")
+    end_zeit = models.TimeField(null=True, blank=True, help_text="wird automatisch ausgefüllt")
 
     def __str__(self):
-        return 'Meter in Flat ' + self.flat.desc
+        return 'Zähler in Wohnung ' + self.flat.name
 
 class MeterData(models.Model):
     meter = models.ForeignKey(Meter, on_delete=models.CASCADE)
@@ -33,5 +33,5 @@ class MeterData(models.Model):
     value = models.FloatField()
 
     def __str__(self):
-        return "Data for Flat " + self.meter.flat.desc
+        return "Datenwert für Wohnung " + self.meter.flat.name
 
