@@ -19,5 +19,6 @@ import mmetering.views as views
 
 urlpatterns = [
     url(r'^$', views.render_home, name="home"),
+    url(r'^download/', views.render_download, name="download"),
     url(r'^admin/', admin.site.urls),
 ]

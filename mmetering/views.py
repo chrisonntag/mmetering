@@ -31,3 +31,6 @@ def render_home(request):
       'avg_div': {'value__avg': 5.5}
     }
   )
+
+def render_download(request):
+  return render(request, 'mmetering/download.html')
