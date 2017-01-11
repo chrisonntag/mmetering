@@ -8,14 +8,18 @@ class Flat(models.Model):
         ('IM', 'Import'),
         ('EX', 'Export'),
     )
-    name = models.CharField(max_length=200, help_text="z.B. Wohnungsnummer")
+    name = models.CharField(max_length=200, help_text="z.B. Wohnungsnummer", verbose_name="Beschreibung")
     modus = models.CharField(default='IM', max_length=2, choices=MODE_TYPES)
 
     def __str__(self):
         return self.name
 
+    class Meta:
+        verbose_name = "Wohnung"
+        verbose_name_plural = "Wohnungen"
+
 class Meter(models.Model):
-    flat = models.OneToOneField(Flat)
+    flat = models.OneToOneField(Flat, verbose_name="Wohnung")
     addresse = models.IntegerField(default=0, help_text="Addresse, auf der der Zähler erreichbar ist")
     seriennummer = models.CharField(max_length=45, help_text="Seriennummer (hinten auf Zähler)")
     init_datetime = models.DateTimeField()
@@ -26,6 +30,10 @@ class Meter(models.Model):
 
     def __str__(self):
         return 'Zähler in Wohnung ' + self.flat.name
+
+    class Meta:
+        verbose_name = "Zähler"
+        verbose_name_plural = "Zähler"
 
 class MeterData(models.Model):
     meter = models.ForeignKey(Meter, on_delete=models.CASCADE)
