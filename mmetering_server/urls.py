@@ -15,10 +15,12 @@ Including another URLconf
 """
 from django.conf.urls import url
 from django.contrib import admin
+from django.contrib.auth.decorators import login_required
 import mmetering.views as views
 
 urlpatterns = [
-    url(r'^$', views.render_home, name="home"),
-    url(r'^download/', views.render_download, name="download"),
+    url(r'^$', views.IndexView.as_view(), name="home"),
+    url(r'^download/', login_required(views.render_download), name="download"),
     url(r'^admin/', admin.site.urls),
+    url(r'^accounts/login/', admin.site.login) #used for making login_required decorator work
 ]
