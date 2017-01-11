@@ -12,7 +12,7 @@ class Flat(models.Model):
     modus = models.CharField(default='IM', max_length=2, choices=MODE_TYPES)
 
     def __str__(self):
-        return self.desc
+        return self.name
 
 class Meter(models.Model):
     flat = models.OneToOneField(Flat)
@@ -30,7 +30,7 @@ class Meter(models.Model):
 class MeterData(models.Model):
     meter = models.ForeignKey(Meter, on_delete=models.CASCADE)
     saved_time = models.DateTimeField()
-    value = models.FloatField()
+    value = models.IntegerField()
 
     def __str__(self):
         return "Datenwert für Wohnung " + self.meter.flat.name
