@@ -13,14 +13,16 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-from django.conf.urls import url
+from django.conf.urls import url, include
 from django.contrib import admin
 from django.contrib.auth.decorators import login_required
 import mmetering.views as views
 
 urlpatterns = [
     url(r'^$', views.IndexView.as_view(), name="home"),
-    url(r'^download/', login_required(views.render_download), name="download"),
+    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    url(r'^api/loadprofile/$', views.APILoadProfileView.as_view()),
     url(r'^admin/', admin.site.urls),
-    url(r'^accounts/login/', admin.site.login) #used for making login_required decorator work
+    url(r'^download/', login_required(views.render_download), name="download"),
+    url(r'^accounts/login/$', admin.site.login) #used for making login_required decorator work
 ]
