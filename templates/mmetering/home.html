@@ -26,7 +26,10 @@
           <div class="row tile_count">
             <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
               <span class="count_top"><i class="fa fa-globe"></i> Gesamtverbrauch</span>
-              <div class="count">{{ total|floatformat:2 }}<span class="mmetering_unit"> kWh</span></div>
+              <div class="count">
+                  {{ consumption.total|floatformat:1 }}
+                  <span class="mmetering_unit">{{ consumption.unit }}</span>
+              </div>
               <span class="count_bottom">
                   {% if total > total_last_week %}
                     <i class="green"><i class="fa fa-sort-asc"></i>{{ total|as_percentage_of:total_last_week }} </i>
@@ -46,23 +49,23 @@
             </div>
             <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
               <span class="count_top"><i class="fa fa-home"></i> Verbraucher</span>
-              <div class="count">{{ verbraucher.count }}</div>
+              <div class="count">{{ consumers.num }}</div>
             </div>
             <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
               <span class="count_top"><i class="fa fa-user"></i> Lieferanten</span>
               <div class="count">
-                  {% if lieferanten.count %}{{ lieferanten.count }}
+                  {% if suppliers.num %}{{ suppliers.num }}
                   {% else %}0{% endif %}
               </div>
             </div>
             <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
               <span class="count_top"><i class="fa fa-percent"></i> Durchschnittsverbrauch</span>
-              <div class="count">{{ avg_current.value__avg }}<span class="mmetering_unit"> kWh</span></div>
+              <div class="count">{{ average.current }}<span class="mmetering_unit"> kWh</span></div>
               <span class="count_bottom">
-                  {% if avg_current.value__avg > avg_last.value__avg %}
-                    <i class="green"><i class="fa fa-sort-asc"></i>{{ avg_current.value__avg|as_percentage_of:avg_last.value__avg }} </i>
-                  {% elif avg_current.value__avg < avg_last.value__avg %}
-                    <i class="red"><i class="fa fa-sort-desc"></i>{{ avg_current.value__avg|as_percentage_of:avg_last.value__avg }} </i>
+                  {% if average.current > average.last %}
+                    <i class="green"><i class="fa fa-sort-asc"></i>{{ average.current|as_percentage_of:average.last }} </i>
+                  {% elif average.current < average.last %}
+                    <i class="red"><i class="fa fa-sort-desc"></i>{{ average.current|as_percentage_of:average.last }} </i>
                   {% endif %}
                   seit gestern
               </span>
@@ -99,6 +102,7 @@
                   <div id="placeholder33" style="height: 260px; display: none" class="demo-placeholder"></div>
                   <div style="width: 100%;">
                     <div id="canvas_dahs" class="lastprofil" style="width: 100%; height:270px;"></div>
+                    <div id="loadprofile"></div>
                   </div>
                 </div>
 
@@ -114,16 +118,16 @@
             <div class="col-md-4 col-sm-4 col-xs-12">
               <div class="x_panel">
                 <div class="x_title">
-                  <h2>Recent Activities <small>Sessions</small></h2>
+                  <h2>Aktivitäten <small>Sessions</small></h2>
                   <ul class="nav navbar-right panel_toolbox">
                     <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
                     </li>
                     <li class="dropdown">
                       <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>
                       <ul class="dropdown-menu" role="menu">
-                        <li><a href="#">Settings 1</a>
+                        <li><a target="_blank" href="/log/print/">Drucken ...</a>
                         </li>
-                        <li><a href="#">Settings 2</a>
+                        <li><a target="_blank" href="/log/export/">Exportieren ...</a>
                         </li>
                       </ul>
                     </li>
@@ -140,52 +144,10 @@
                         <div class="block">
                           <div class="block_content">
                             <h2 class="title">
-                                              <a>Who Needs Sundance When You’ve Got&nbsp;Crowdfunding?</a>
-                                          </h2>
+                                <a>Database Connection lost</a>
+                            </h2>
                             <div class="byline">
-                              <span>13 hours ago</span> by <a>Jane Smith</a>
-                            </div>
-                            <p class="excerpt">Film festivals used to be do-or-die moments for movie makers. They were where you met the producers that could fund your project, and if the buyers liked your flick, they’d pay to Fast-forward and… <a>Read&nbsp;More</a>
-                            </p>
-                          </div>
-                        </div>
-                      </li>
-                      <li>
-                        <div class="block">
-                          <div class="block_content">
-                            <h2 class="title">
-                                              <a>Who Needs Sundance When You’ve Got&nbsp;Crowdfunding?</a>
-                                          </h2>
-                            <div class="byline">
-                              <span>13 hours ago</span> by <a>Jane Smith</a>
-                            </div>
-                            <p class="excerpt">Film festivals used to be do-or-die moments for movie makers. They were where you met the producers that could fund your project, and if the buyers liked your flick, they’d pay to Fast-forward and… <a>Read&nbsp;More</a>
-                            </p>
-                          </div>
-                        </div>
-                      </li>
-                      <li>
-                        <div class="block">
-                          <div class="block_content">
-                            <h2 class="title">
-                                              <a>Who Needs Sundance When You’ve Got&nbsp;Crowdfunding?</a>
-                                          </h2>
-                            <div class="byline">
-                              <span>13 hours ago</span> by <a>Jane Smith</a>
-                            </div>
-                            <p class="excerpt">Film festivals used to be do-or-die moments for movie makers. They were where you met the producers that could fund your project, and if the buyers liked your flick, they’d pay to Fast-forward and… <a>Read&nbsp;More</a>
-                            </p>
-                          </div>
-                        </div>
-                      </li>
-                      <li>
-                        <div class="block">
-                          <div class="block_content">
-                            <h2 class="title">
-                                              <a>Who Needs Sundance When You’ve Got&nbsp;Crowdfunding?</a>
-                                          </h2>
-                            <div class="byline">
-                              <span>13 hours ago</span> by <a>Jane Smith</a>
+                              <span>18.01.2017 14:23:35</span>
                             </div>
                             <p class="excerpt">Film festivals used to be do-or-die moments for movie makers. They were where you met the producers that could fund your project, and if the buyers liked your flick, they’d pay to Fast-forward and… <a>Read&nbsp;More</a>
                             </p>
@@ -387,78 +349,6 @@
     <script src="{% static 'mmetering/js/flot/jquery.flot.tooltip.min.js' %}"></script>
     <!-- jVectorMap -->
     <script src="{% static 'mmetering/js/maps/jquery-jvectormap-2.0.3.min.js' %}"></script>
-    <!-- Flot -->
-    <script>
-      //Lastprofil
-      $(document).ready(function() {
-        var data1 = []
-        {% for set in data %}
-            data1.push([gd("{{ set.saved_time.isoformat }}"), {{ set.value_sum }}])
-        {% endfor %}
-
-        $("#canvas_dahs").length && $.plot($("#canvas_dahs"), [
-          data1
-        ], {
-          series: {
-            lines: {
-              show: false,
-              fill: true
-            },
-            splines: {
-              show: true,
-              tension: 0.4,
-              lineWidth: 1,
-              fill: 0.4
-            },
-            points: {
-              radius: 0,
-              show: true
-            },
-            shadowSize: 2
-          },
-          legend: {
-            show: true,
-            position: "ne"
-          },
-          grid: {
-            verticalLines: true,
-            hoverable: true,
-            autoHighlight: true,
-            tickColor: "#d5d5d5",
-            borderWidth: 1,
-            color: '#fff'
-          },
-          tooltip: {
-            show:           true,
-            content:        "%x Uhr: %y Wh"
-          },
-          colors: ["rgba(38, 185, 154, 0.38)", "rgba(3, 88, 106, 0.38)"],
-          xaxis: {
-            tickColor: "rgba(51, 51, 51, 0.06)",
-            mode: "time",
-            timeformat: '%h',
-            timezone: "browser",
-            tickSize: [1, "hour"],
-            //tickLength: 10,
-            axisLabel: "Date",
-            axisLabelUseCanvas: true,
-            axisLabelFontSizePixels: 12,
-            axisLabelFontFamily: 'Verdana, Arial',
-            axisLabelPadding: 10
-          },
-          yaxis: {
-            ticks: 8,
-            tickColor: "rgba(51, 51, 51, 0.06)",
-          },
-          tooltip: true
-        });
-
-        function gd(isoformat) {
-          return new Date(isoformat).getTime();
-        }
-      });
-    </script>
-    <!-- /Flot -->
 
     <!-- Skycons -->
     <script>
@@ -550,6 +440,108 @@
       });
     </script>
     <!-- /bootstrap-daterangepicker -->
+
+    <!-- Loadprofile/Flot -->
+    <script>
+        var ajaxLoadProfile = $.ajax({
+          type: 'GET',
+          contentType: 'application/json',
+          url: '/api/loadprofile?format=json',
+          success: loadLoadProfile
+        });
+        var interval = 1000 * 60 * 1;
+        setInterval(ajaxLoadProfile, interval);
+
+        function gd(isoformat) {
+          return new Date(isoformat).getTime();
+        }
+
+        function loadLoadProfile(response) {
+            var data = response.data;
+
+            var vals = [];
+            data.forEach(function(d) {
+                vals.push([gd(""+ d.saved_time +""), d.value_sum]);
+            });
+
+            var length = plot.getData()[0].data.length - 1;
+            var last_old = plot.getData()[0].data[length];
+
+            if(last_old != null && last_old != undefined) {
+                if(vals[length][0] !== last_old[0]) {
+                    //console.log("There's new data, redraw the graph");
+                    plot.setData([vals]);
+                    plot.setupGrid();
+                    plot.draw();
+                }
+            } else {
+                //console.log("Loaded data the first time");
+                plot.setData([vals]);
+                plot.setupGrid();
+                plot.draw();
+            }
+        }
+
+        var options = {
+          series: {
+            lines: {
+              show: false,
+              fill: true
+            },
+            splines: {
+              show: true,
+              tension: 0.4,
+              lineWidth: 1,
+              fill: 0.4
+            },
+            points: {
+              radius: 0,
+              show: true
+            },
+            shadowSize: 2
+          },
+          legend: {
+            show: true,
+            position: "ne"
+          },
+          grid: {
+            verticalLines: true,
+            hoverable: true,
+            autoHighlight: true,
+            tickColor: "#d5d5d5",
+            borderWidth: 1,
+            color: '#fff'
+          },
+          tooltip: {
+            show:           true,
+            content:        "%x Uhr: %y Wh"
+          },
+          colors: ["rgba(38, 185, 154, 0.38)", "rgba(3, 88, 106, 0.38)"],
+          xaxis: {
+            tickColor: "rgba(51, 51, 51, 0.06)",
+            mode: "time",
+            timeformat: '%h',
+            timezone: "browser",
+            tickSize: [1, "hour"],
+            //tickLength: 10,
+            axisLabel: "Date",
+            axisLabelUseCanvas: true,
+            axisLabelFontSizePixels: 12,
+            axisLabelFontFamily: 'Verdana, Arial',
+            axisLabelPadding: 10
+          },
+          yaxis: {
+            ticks: 8,
+            tickColor: "rgba(51, 51, 51, 0.06)",
+          },
+          tooltip: true
+        };
+
+        values = [];
+        plot = $.plot($("#canvas_dahs"), [values], options);
+
+    </script>
+    <!-- /Loadprofile/Flot -->
 
 
 {% endblock %}

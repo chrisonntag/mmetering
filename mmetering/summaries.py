@@ -21,6 +21,8 @@ class Overview:
     self.timerange = start + end
     # TODO check for start==end
 
+    self.flats = Flat.objects.all()
+
 
   def parseDate(self, string):
     """Converts Datestring(MM/DD/YYYY) into date object."""
@@ -39,20 +41,46 @@ class Overview:
   def getDataRange(self, start, end):
     data = MeterData.objects.all() \
       .filter(
-      meter__flat__modus__exact='IM',
-      saved_time__range=[
-        start,
-        end
-      ]
-    ) \
+        meter__flat__modus__exact='IM',
+        saved_time__range=[start, end]
+      ) \
       .values('saved_time') \
-      .annotate(
-      value_sum=Sum('value')
-    )
+      .annotate(value_sum=Sum('value'))
     return data
+
+  def getTotalConsumption(self, until):
+    total_splitted = MeterData.objects.all()\
+      .filter(meter__flat__modus__exact='IM', saved_time__lt=until)\
+      .values('meter_id')\
+      .annotate(max_value=Sum('value')).order_by()\
+      .values_list('max_value')
+
+    total = []
+    for flat in total_splitted:
+      total.append(flat[0])
+
+    return sum(total) / 1000 # /1000 convert to kwH
 
 class LoadProfileOverview(Overview):
   def to_dict(self):
     return {
       'data': self.getDataRange(self.timerange[0], self.timerange[1])
+    }
+
+class DataOverview(Overview):
+  def to_dict(self):
+    return {
+      'consumers': Flat.objects.filter(modus='IM').aggregate(num=Count('name')),
+      'suppliers': Flat.objects.filter(modus='EX').aggregate(num=Count('name')),
+      'consumption': {
+        'total': self.getTotalConsumption(date.today()),
+        'unit': 'kWh'
+      },
+      # 'total_last_week': total_last_week,
+      # 'day_low': data_last_day.values('saved_time').order_by('value').first(),
+      # 'day_high': data_last_day.values('saved_time').order_by('-value').first(),
+      'average': {
+        'current': 7.6,
+        'last': 5.4
+      }
     }
