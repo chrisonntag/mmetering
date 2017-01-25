@@ -59,7 +59,7 @@ class Overview:
     for flat in total_splitted:
       total.append(flat[0])
 
-    return sum(total) / 1000 # /1000 convert to kwH
+    return sum(total) / 1000 / 1000 # /1000 convert to MwH
 
 class LoadProfileOverview(Overview):
   def to_dict(self):
@@ -74,11 +74,13 @@ class DataOverview(Overview):
       'suppliers': Flat.objects.filter(modus='EX').aggregate(num=Count('name')),
       'consumption': {
         'total': self.getTotalConsumption(date.today()),
-        'unit': 'kWh'
+        'total_last_week': self.getTotalConsumption(self.times['last_week'][1]),
+        'unit': 'MWh'
       },
-      # 'total_last_week': total_last_week,
-      # 'day_low': data_last_day.values('saved_time').order_by('value').first(),
-      # 'day_high': data_last_day.values('saved_time').order_by('-value').first(),
+      'time': {
+        'day_low': self.getDataRange(self.times['yesterday'], self.times['today']).values('saved_time').order_by('value').first(),
+        'day_high': self.getDataRange(self.times['yesterday'], self.times['today']).values('saved_time').order_by('-value').first(),
+      },
       'average': {
         'current': 7.6,
         'last': 5.4
