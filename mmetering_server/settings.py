@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'mmetering',
+    'backend',
 ]
 
 MIDDLEWARE = [
@@ -116,7 +117,7 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
+USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)
@@ -126,3 +127,10 @@ STATICFILES_DIRS = (
 )
 STATIC_ROOT = '/static/'
 STATIC_URL = '/static/'
+
+# CELERY SETTINGS
+BROKER_URL = 'redis://localhost:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERYBEAT_MAX_LOOP_INTERVAL = 900
