@@ -1,7 +1,7 @@
 from django.shortcuts import render, render_to_response
 from django.views import View
 from django.views.generic import TemplateView
-from mmetering.summaries import DataOverview
+from mmetering.summaries import DataOverview, CSVResponse
 import csv
 from django.http import HttpResponse
 from datetime import datetime
@@ -19,9 +19,12 @@ def render_download(request):
   response = HttpResponse(content_type='text/csv')
   response['Content-Disposition'] = 'attachment; filename="mmetering%s.csv"' % str(datetime.today())
 
+  data = CSVResponse().getData()
+
   writer = csv.writer(response)
-  writer.writerow(['First row', 'Foo', 'Bar', 'Baz'])
-  writer.writerow(['Second row', 'A', 'B', 'C', '"Testing"', "Here's a quote"])
+  writer.writerow(['Zaehlernummer', 'Uhrzeit', 'Wert'])
+  for i in range(0, len(data)):
+    writer.writerow(data[i])
 
   return response
 

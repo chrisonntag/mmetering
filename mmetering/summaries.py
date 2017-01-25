@@ -95,3 +95,15 @@ class DataOverview(Overview):
         'unit': 'kWh'
       }
     }
+
+class CSVResponse:
+  def getData(self):
+    total_splitted = MeterData.objects.all() \
+      .filter(meter__flat__modus__exact='IM', saved_time__lt=datetime.today()) \
+      .values_list('meter_id', 'saved_time', 'value')
+
+    total = []
+    for flat in total_splitted:
+      total.append(flat)
+
+    return total
