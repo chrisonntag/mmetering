@@ -443,45 +443,6 @@
 
     <!-- Loadprofile/Flot -->
     <script>
-        var ajaxLoadProfile = $.ajax({
-          type: 'GET',
-          contentType: 'application/json',
-          url: '/api/loadprofile?format=json',
-          success: loadLoadProfile
-        });
-        var interval = 1000 * 60 * 1;
-        setInterval(ajaxLoadProfile, interval);
-
-        function gd(isoformat) {
-          return new Date(isoformat).getTime();
-        }
-
-        function loadLoadProfile(response) {
-            var data = response.data;
-
-            var vals = [];
-            data.forEach(function(d) {
-                vals.push([gd(""+ d.saved_time +""), d.value_sum]);
-            });
-
-            var length = plot.getData()[0].data.length - 1;
-            var last_old = plot.getData()[0].data[length];
-
-            if(last_old != null && last_old != undefined) {
-                if(vals[length][0] !== last_old[0]) {
-                    //console.log("There's new data, redraw the graph");
-                    plot.setData([vals]);
-                    plot.setupGrid();
-                    plot.draw();
-                }
-            } else {
-                //console.log("Loaded data the first time");
-                plot.setData([vals]);
-                plot.setupGrid();
-                plot.draw();
-            }
-        }
-
         var options = {
           series: {
             lines: {
@@ -537,8 +498,54 @@
           tooltip: true
         };
 
-        values = [];
-        plot = $.plot($("#canvas_dahs"), [values], options);
+        plot = $.plot($("#canvas_dahs"), [[]], options);
+
+        var interval = 1000 * 1 * 60;
+        setInterval(ajaxLoadProfile, interval);
+        function ajaxLoadProfile() {
+            $.ajax({
+                type: 'GET',
+                contentType: 'application/json',
+                url: '/api/loadprofile?format=json',
+                success: loadLoadProfile
+            });
+        }
+        ajaxLoadProfile()
+
+        function gd(isoformat) {
+          return new Date(isoformat).getTime();
+        }
+
+        function loadLoadProfile(response) {
+            var data = response.data;
+            console.log("Made ajax request")
+
+            vals = [];
+            for(var i=0;i<data.length;i++) {
+                vals.push([gd(""+ data[i].saved_time +""), data[i].value_sum]);
+            }
+
+            plot.setData([vals]);
+            plot.setupGrid();
+            plot.draw();
+
+            var length = plot.getData()[0].data.length - 1;
+            var last_old = plot.getData()[0].data[length];
+
+            if(last_old != null && last_old != undefined) {
+                if(vals[length][0] !== last_old[0]) {
+                    console.log("There's new data, redraw the graph");
+                    plot.setData([vals]);
+                    plot.setupGrid();
+                    plot.draw();
+                }
+            } else {
+                console.log("Loaded data the first time");
+                plot.setData([vals]);
+                plot.setupGrid();
+                plot.draw();
+            }
+        }
 
     </script>
     <!-- /Loadprofile/Flot -->
