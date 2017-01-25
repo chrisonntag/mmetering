@@ -2,6 +2,9 @@ from django.shortcuts import render, render_to_response
 from django.views import View
 from django.views.generic import TemplateView
 from mmetering.summaries import DataOverview
+import csv
+from django.http import HttpResponse
+from datetime import datetime
 
 from django.views.generic.edit import FormView
 from mmetering.forms import ContactForm
@@ -12,7 +15,15 @@ class IndexView(TemplateView):
     return render(request, 'mmetering/home.html', data.to_dict())
 
 def render_download(request):
-  return render(request, 'mmetering/download.html')
+  # Create the HttpResponse object with the appropriate CSV header.
+  response = HttpResponse(content_type='text/csv')
+  response['Content-Disposition'] = 'attachment; filename="mmetering%s.csv"' % str(datetime.today())
+
+  writer = csv.writer(response)
+  writer.writerow(['First row', 'Foo', 'Bar', 'Baz'])
+  writer.writerow(['Second row', 'A', 'B', 'C', '"Testing"', "Here's a quote"])
+
+  return response
 
 def render_contact(request):
   return render(request, 'mmetering/contact.html')
