@@ -19,6 +19,7 @@ from django.contrib.auth.decorators import login_required
 import mmetering.views as views
 
 urlpatterns = [
+    url(r'^$', views.LoginView.as_view(), name="login"),
     url(r'^dashboard/$', views.IndexView.as_view(), name="home"),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^api/loadprofile/$', views.APILoadProfileView.as_view()),

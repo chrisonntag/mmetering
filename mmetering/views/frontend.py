@@ -39,3 +39,8 @@ class ContactView(FormView):
   def form_valid(self, form):
     form.send_email()
     return super(ContactView, self).form_valid(form)
+
+class LoginView(TemplateView):
+  def get(self, request, *args, **kwargs):
+    data = DataOverview(request.GET)
+    return render(request, 'mmetering/login.html', data.to_dict())
