@@ -27,25 +27,24 @@
             <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
               <span class="count_top"><i class="fa fa-globe"></i> Gesamtverbrauch</span>
               <div class="count">
-                  {{ consumption.total|floatformat:1 }}
-                  <span class="mmetering_unit">{{ consumption.unit }}</span>
+                  {{ consumption.total|floatformat:2 }}<span class="mmetering_unit">{{ consumption.unit }}</span>
               </div>
               <span class="count_bottom">
-                  {% if total > total_last_week %}
-                    <i class="green"><i class="fa fa-sort-asc"></i>{{ total|as_percentage_of:total_last_week }} </i>
-                  {% elif total < total_last_week %}
-                    <i class="red"><i class="fa fa-sort-desc"></i>{{ total|as_percentage_of:total_last_week }} </i>
+                  {% if consumption.total > consumption.total_last_week %}
+                    <i class="green"><i class="fa fa-sort-asc"></i>{{ consumption.total|as_percentage_of:consumption.total_last_week }} </i>
+                  {% elif consumption.total < consumption.total_last_week %}
+                    <i class="red"><i class="fa fa-sort-desc"></i>{{ consumption.total|as_percentage_of:consumption.total_last_week }} </i>
                   {% endif %}
                   letzte Woche
               </span>
             </div>
             <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
               <span class="count_top"><i class="fa fa-clock-o"></i> Tageshoch</span>
-              <div class="count red">{{ day_high.saved_time.time }}<span class="mmetering_unit"> Uhr</span></div>
+              <div class="count red">{{ time.day_high.saved_time.time }}<span class="mmetering_unit"> Uhr</span></div>
             </div>
             <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
               <span class="count_top"><i class="fa fa-clock-o"></i> Tagestief</span>
-              <div class="count green">{{ day_low.saved_time.time }}<span class="mmetering_unit"> Uhr</span></div>
+              <div class="count green">{{ time.day_low.saved_time.time }}<span class="mmetering_unit"> Uhr</span></div>
             </div>
             <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
               <span class="count_top"><i class="fa fa-home"></i> Verbraucher</span>
