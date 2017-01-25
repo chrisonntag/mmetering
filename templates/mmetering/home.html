@@ -59,7 +59,7 @@
             </div>
             <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
               <span class="count_top"><i class="fa fa-percent"></i> Durchschnittsverbrauch</span>
-              <div class="count">{{ average.current }}<span class="mmetering_unit"> kWh</span></div>
+              <div class="count">{{ average.current|floatformat:0 }}<span class="mmetering_unit">{{ average.unit }}</span></div>
               <span class="count_bottom">
                   {% if average.current > average.last %}
                     <i class="green"><i class="fa fa-sort-asc"></i>{{ average.current|as_percentage_of:average.last }} </i>

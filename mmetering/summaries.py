@@ -48,18 +48,26 @@ class Overview:
       .annotate(value_sum=Sum('value'))
     return data
 
-  def getTotalConsumption(self, until):
-    total_splitted = MeterData.objects.all()\
-      .filter(meter__flat__modus__exact='IM', saved_time__lt=until)\
-      .values('meter_id')\
-      .annotate(max_value=Sum('value')).order_by()\
+  def getTotal(self, until):
+    total_splitted = MeterData.objects.all() \
+      .filter(meter__flat__modus__exact='IM', saved_time__lt=until) \
+      .values('meter_id') \
+      .annotate(max_value=Sum('value')).order_by() \
       .values_list('max_value')
 
     total = []
     for flat in total_splitted:
       total.append(flat[0])
 
+    return total
+
+  def getTotalConsumption(self, until):
+    total = self.getTotal(until)
     return sum(total) / 1000 / 1000 # /1000 convert to MwH
+
+  def getAverageConsumption(self, until):
+    total = self.getTotal(until)
+    return sum(total)/len(total) / 1000
 
 class LoadProfileOverview(Overview):
   def to_dict(self):
@@ -78,11 +86,12 @@ class DataOverview(Overview):
         'unit': 'MWh'
       },
       'time': {
-        'day_low': self.getDataRange(self.times['yesterday'], self.times['today']).values('saved_time').order_by('value').first(),
-        'day_high': self.getDataRange(self.times['yesterday'], self.times['today']).values('saved_time').order_by('-value').first(),
+        'day_low': self.getDataRange(self.times['yesterday'], self.times['today']).values('saved_time').order_by('value_sum').first(),
+        'day_high': self.getDataRange(self.times['yesterday'], self.times['today']).values('saved_time').order_by('-value_sum').first(),
       },
       'average': {
-        'current': 7.6,
-        'last': 5.4
+        'current': self.getAverageConsumption(self.times['today']),
+        'last': self.getAverageConsumption(self.times['yesterday']),
+        'unit': 'kWh'
       }
     }
