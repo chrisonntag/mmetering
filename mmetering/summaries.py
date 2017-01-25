@@ -27,8 +27,8 @@ class Overview:
   def parseDate(self, string):
     """Converts Datestring(MM/DD/YYYY) into date object."""
     try:
-      raw = list(map(int, string.split('/')))
-      return datetime(raw[2], raw[0], raw[1], 0, 0, 0, 0)
+      raw = list(map(int, string.split('.')))
+      return datetime(raw[2], raw[1], raw[0], 0, 0, 0, 0)
     except:
       logging.error("Expected string format is MM/DD/YYYY. I got %s" % string)
 
