@@ -19,11 +19,12 @@ from django.contrib.auth.decorators import login_required
 import mmetering.views as views
 
 urlpatterns = [
-    url(r'^$', views.IndexView.as_view(), name="home"),
+    url(r'^dashboard/$', views.IndexView.as_view(), name="home"),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^api/loadprofile/$', views.APILoadProfileView.as_view()),
     url(r'^api/overview/$', views.APIDataOverviewView.as_view()),
     url(r'^admin/', admin.site.urls),
     url(r'^download/', login_required(views.render_download), name="download"),
+    url(r'^contact/', views.render_contact, name="contact"),
     url(r'^accounts/login/$', admin.site.login) #used for making login_required decorator work
 ]
