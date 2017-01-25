@@ -25,6 +25,6 @@ urlpatterns = [
     url(r'^api/overview/$', views.APIDataOverviewView.as_view()),
     url(r'^admin/', admin.site.urls),
     url(r'^download/', login_required(views.render_download), name="download"),
-    url(r'^contact/', views.render_contact, name="contact"),
+    url(r'^contact/', views.ContactView.as_view(), name="contact"),
     url(r'^accounts/login/$', admin.site.login) #used for making login_required decorator work
 ]
