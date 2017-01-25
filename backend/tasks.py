@@ -5,7 +5,7 @@ from random import randint
 from celery.task.schedules import crontab
 from celery.task import PeriodicTask
 from celery.decorators import periodic_task
-from mmetering.models import Meter, TestMeterData
+from mmetering.models import Meter, MeterData
 
 class MeterObject:
     def __init__(self, id, address):
@@ -45,10 +45,10 @@ class MeterDataLoaderTask(PeriodicTask):
 
     def loadData(self):
         for meter in self.meter_objects:
-            value = TestMeterData(meter_id=meter.getId(),
-                                  saved_time=datetime.today(),
-                                  value=meter.getValue()
-                                  )
+            value = MeterData(meter_id=meter.getId(),
+                              saved_time=datetime.today(),
+                              value=meter.getValue()
+                              )
             value.save()
 
     def run(self):
