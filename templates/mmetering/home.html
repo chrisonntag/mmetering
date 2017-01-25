@@ -1,0 +1,519 @@
+{% extends "base.html" %}
+{% load static %}
+{% load mmetering_templatetags %}
+
+{% block title %}MMetering | Home{% endblock %}
+
+{% block headcss %}
+    <!-- iCheck -->
+    <link href="{% static 'mmetering/vendors/iCheck/skins/flat/green.css' %}" rel="stylesheet">
+    <!-- bootstrap-progressbar -->
+    <link href="{% static 'mmetering/vendors/bootstrap-progressbar/css/bootstrap-progressbar-3.3.4.min.css' %}" rel="stylesheet">
+    <!-- jVectorMap -->
+    <link href="{% static 'mmetering/css/maps/jquery-jvectormap-2.0.3.css' %}" rel="stylesheet"/>
+
+    <style>
+    .mmetering_unit{
+      font-weight: 400
+    }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <!-- page content -->
+        <div class="right_col" role="main">
+          <!-- top tiles -->
+          <div class="row tile_count">
+            <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
+              <span class="count_top"><i class="fa fa-globe"></i> Gesamtverbrauch</span>
+              <div class="count">
+                  {{ consumption.total|floatformat:2 }}<span class="mmetering_unit">{{ consumption.unit }}</span>
+              </div>
+              <span class="count_bottom">
+                  {% if consumption.total > consumption.total_last_week %}
+                    <i class="green"><i class="fa fa-sort-asc"></i>{{ consumption.total|as_percentage_of:consumption.total_last_week }} </i>
+                  {% elif consumption.total < consumption.total_last_week %}
+                    <i class="red"><i class="fa fa-sort-desc"></i>{{ consumption.total|as_percentage_of:consumption.total_last_week }} </i>
+                  {% endif %}
+                  letzte Woche
+              </span>
+            </div>
+            <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
+              <span class="count_top"><i class="fa fa-clock-o"></i> Tageshoch</span>
+              <div class="count red">{{ time.day_high.saved_time.time }}<span class="mmetering_unit"> Uhr</span></div>
+            </div>
+            <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
+              <span class="count_top"><i class="fa fa-clock-o"></i> Tagestief</span>
+              <div class="count green">{{ time.day_low.saved_time.time }}<span class="mmetering_unit"> Uhr</span></div>
+            </div>
+            <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
+              <span class="count_top"><i class="fa fa-home"></i> Verbraucher</span>
+              <div class="count">{{ consumers.num }}</div>
+            </div>
+            <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
+              <span class="count_top"><i class="fa fa-user"></i> Lieferanten</span>
+              <div class="count">
+                  {% if suppliers.num %}{{ suppliers.num }}
+                  {% else %}0{% endif %}
+              </div>
+            </div>
+            <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
+              <span class="count_top"><i class="fa fa-percent"></i> Durchschnittsverbrauch</span>
+              <div class="count">{{ average.current|floatformat:0 }}<span class="mmetering_unit">{{ average.unit }}</span></div>
+              <span class="count_bottom">
+                  {% if average.current > average.last %}
+                    <i class="green"><i class="fa fa-sort-asc"></i>{{ average.current|as_percentage_of:average.last }} </i>
+                  {% elif average.current < average.last %}
+                    <i class="red"><i class="fa fa-sort-desc"></i>{{ average.current|as_percentage_of:average.last }} </i>
+                  {% endif %}
+                  seit gestern
+              </span>
+            </div>
+          </div>
+          <!-- /top tiles -->
+
+          <div class="row">
+            <div class="col-md-12 col-sm-12 col-xs-12">
+              <div class="dashboard_graph">
+
+                <div class="row x_title">
+                  <div class="col-md-6">
+                    <h3>
+                        Lastprofil
+                        <small>Neuburger-Stra&szlig;e 31a</small>
+                    </h3>
+                  </div>
+                  <div class="col-md-6">
+                        <div id="reportrange" class="pull-right" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc">
+                          <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>
+                          <span>December 30, 2014 - January 28, 2015</span> <b class="caret"></b>
+                          <form id="timerange_form" method="get">
+                              <input type="hidden" class="hidden" id="timerange_start" name="start" />
+                              <input type="hidden" id="timerange_end" name="end" />
+                          </form>
+                        </div>
+
+                  </div>
+                </div>
+
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                  <div id="placeholder33" style="height: 260px; display: none" class="demo-placeholder"></div>
+                  <div style="width: 100%;">
+                    <div id="canvas_dahs" class="lastprofil" style="width: 100%; height:270px;"></div>
+                    <div id="loadprofile"></div>
+                  </div>
+                </div>
+
+
+                <div class="clearfix"></div>
+              </div>
+            </div>
+
+          </div>
+          <br />
+
+          <div class="row">
+            <div class="col-md-4 col-sm-4 col-xs-12">
+              <div class="x_panel">
+                <div class="x_title">
+                  <h2>Aktivitäten <small>Sessions</small></h2>
+                  <ul class="nav navbar-right panel_toolbox">
+                    <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                    </li>
+                    <li class="dropdown">
+                      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>
+                      <ul class="dropdown-menu" role="menu">
+                        <li><a target="_blank" href="/log/print/">Drucken ...</a>
+                        </li>
+                        <li><a target="_blank" href="/log/export/">Exportieren ...</a>
+                        </li>
+                      </ul>
+                    </li>
+                    <li><a class="close-link"><i class="fa fa-close"></i></a>
+                    </li>
+                  </ul>
+                  <div class="clearfix"></div>
+                </div>
+                <div class="x_content">
+                  <div class="dashboard-widget-content">
+
+                    <ul class="list-unstyled timeline widget">
+                      <li>
+                        <div class="block">
+                          <div class="block_content">
+                            <h2 class="title">
+                                <a>Database Connection lost</a>
+                            </h2>
+                            <div class="byline">
+                              <span>18.01.2017 14:23:35</span>
+                            </div>
+                            <p class="excerpt">Lost connection to MySQL<a>Mehr lesen</a>
+                            </p>
+                          </div>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
+            <div class="col-md-8 col-sm-8 col-xs-12">
+
+              <div class="row">
+
+                <!-- start of weather widget -->
+                <div class="col-md-6 col-sm-6 col-xs-12">
+                  <div class="x_panel">
+                    <div class="x_title">
+                      <h2>Wetter <small>Regensburg</small></h2>
+                      <ul class="nav navbar-right panel_toolbox">
+                        <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                        </li>
+                        <li class="dropdown">
+                          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>
+                          <ul class="dropdown-menu" role="menu">
+                            <li><a href="#">Settings 1</a>
+                            </li>
+                            <li><a href="#">Settings 2</a>
+                            </li>
+                          </ul>
+                        </li>
+                        <li><a class="close-link"><i class="fa fa-close"></i></a>
+                        </li>
+                      </ul>
+                      <div class="clearfix"></div>
+                    </div>
+                    <div class="x_content">
+                      <div class="row">
+                        <div class="col-sm-12">
+                          <div class="temperature"><b>Montag</b>, 07:30
+                            <span><b>°C</b></span>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="row">
+                        <div class="col-sm-4">
+                          <div class="weather-icon">
+                            <canvas height="84" width="84" id="partly-cloudy-day"></canvas>
+                          </div>
+                        </div>
+                        <div class="col-sm-8">
+                          <div class="weather-text">
+                            <h2>Regensburg <br><i>Teilweise wolkig</i></h2>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-sm-12">
+                        <div class="weather-text pull-right">
+                          <h3 class="degrees">-12</h3>
+                        </div>
+                      </div>
+
+                      <div class="clearfix"></div>
+
+                      <div class="row weather-days">
+                        <div class="col-sm-2">
+                          <div class="daily-weather">
+                            <h2 class="day">Mo</h2>
+                            <h3 class="degrees">25</h3>
+                            <canvas id="clear-day" width="32" height="32"></canvas>
+                            <h5>15 <i>km/h</i></h5>
+                          </div>
+                        </div>
+                        <div class="col-sm-2">
+                          <div class="daily-weather">
+                            <h2 class="day">Di</h2>
+                            <h3 class="degrees">25</h3>
+                            <canvas height="32" width="32" id="rain"></canvas>
+                            <h5>12 <i>km/h</i></h5>
+                          </div>
+                        </div>
+                        <div class="col-sm-2">
+                          <div class="daily-weather">
+                            <h2 class="day">Mi</h2>
+                            <h3 class="degrees">27</h3>
+                            <canvas height="32" width="32" id="snow"></canvas>
+                            <h5>14 <i>km/h</i></h5>
+                          </div>
+                        </div>
+                        <div class="col-sm-2">
+                          <div class="daily-weather">
+                            <h2 class="day">Do</h2>
+                            <h3 class="degrees">28</h3>
+                            <canvas height="32" width="32" id="sleet"></canvas>
+                            <h5>15 <i>km/h</i></h5>
+                          </div>
+                        </div>
+                        <div class="col-sm-2">
+                          <div class="daily-weather">
+                            <h2 class="day">Fr</h2>
+                            <h3 class="degrees">28</h3>
+                            <canvas height="32" width="32" id="wind"></canvas>
+                            <h5>11 <i>km/h</i></h5>
+                          </div>
+                        </div>
+                        <div class="col-sm-2">
+                          <div class="daily-weather">
+                            <h2 class="day">Sa</h2>
+                            <h3 class="degrees">26</h3>
+                            <canvas height="32" width="32" id="cloudy"></canvas>
+                            <h5>10 <i>km/h</i></h5>
+                          </div>
+                        </div>
+                        <div class="clearfix"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+                <!-- end of weather widget -->
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- /page content -->
+{% endblock %}
+
+{% block additionalJS %}
+
+    <!-- FastClick -->
+    <script src="{% static 'mmetering/vendors/fastclick/lib/fastclick.js' %}"></script>
+    <!-- NProgress -->
+    <script src="{% static 'mmetering/vendors/nprogress/nprogress.js' %}"></script>
+    <!-- Chart.js -->
+    <script src="{% static 'mmetering/vendors/Chart.js/dist/Chart.min.js' %}"></script>
+    <!-- bootstrap-progressbar -->
+    <script src="{% static 'mmetering/vendors/bootstrap-progressbar/bootstrap-progressbar.min.js' %}"></script>
+    <!-- iCheck -->
+    <script src="{% static 'mmetering/vendors/iCheck/icheck.min.js' %}"></script>
+    <!-- Skycons -->
+    <script src="{% static 'mmetering/vendors/skycons/skycons.js' %}"></script>
+    <!-- Flot -->
+    <script src="{% static 'mmetering/vendors/Flot/jquery.flot.js' %}"></script>
+    <script src="{% static 'mmetering/vendors/Flot/jquery.flot.pie.js' %}"></script>
+    <script src="{% static 'mmetering/vendors/Flot/jquery.flot.time.js' %}"></script>
+    <script src="{% static 'mmetering/vendors/Flot/jquery.flot.stack.js' %}"></script>
+    <script src="{% static 'mmetering/vendors/Flot/jquery.flot.resize.js' %}"></script>
+    <!-- Flot plugins -->
+    <script src="{% static 'mmetering/js/flot/jquery.flot.orderBars.js' %}"></script>
+    <script src="{% static 'mmetering/js/flot/date.js' %}"></script>
+    <script src="{% static 'mmetering/js/flot/jquery.flot.spline.js' %}"></script>
+    <script src="{% static 'mmetering/js/flot/curvedLines.js' %}"></script>
+    <script src="{% static 'mmetering/js/flot/jquery.flot.tooltip.min.js' %}"></script>
+    <!-- jVectorMap -->
+    <script src="{% static 'mmetering/js/maps/jquery-jvectormap-2.0.3.min.js' %}"></script>
+
+    <!-- Skycons -->
+    <script>
+      $(document).ready(function() {
+        var icons = new Skycons({
+            "color": "#73879C"
+          }),
+          list = [
+            "clear-day", "clear-night", "partly-cloudy-day",
+            "partly-cloudy-night", "cloudy", "rain", "sleet", "snow", "wind",
+            "fog"
+          ],
+          i;
+
+        for (i = list.length; i--;)
+          icons.set(list[i], list[i]);
+
+        icons.play();
+      });
+    </script>
+    <!-- /Skycons -->
+
+    <!-- bootstrap-daterangepicker -->
+    <script>
+    moment.locale('de');
+      $(document).ready(function() {
+
+
+
+        var cb = function(start, end, label) {
+          console.log(start.toISOString(), end.toISOString(), label);
+          $('#reportrange span').html(start.format('D MMMM, YYYY') + ' - ' + end.format('D MMMM, YYYY'));
+          $('#reportrange #timerange_start').attr('value', start.format('l'));
+          $('#reportrange #timerange_end').attr('value', end.format('l'));
+        };
+
+        var optionSet1 = {
+          startDate: moment().subtract(4, 'days'),
+          endDate: moment(),
+          minDate: '01/01/2012',
+          maxDate: moment(),
+          dateLimit: {
+            days: 60
+          },
+          showDropdowns: true,
+          showWeekNumbers: true,
+          timePicker: false,
+          timePickerIncrement: 1,
+          timePicker24Hour: true,
+          ranges: {
+            'Heute': [moment().subtract(1, 'days'), moment()],
+            'Gestern': [moment().subtract(2, 'days'), moment().subtract(1, 'days')],
+            'Letzte 7 Tage': [moment().subtract(6, 'days'), moment()],
+            'Dieser Monat': [moment().startOf('month'), moment().endOf('month')]
+          },
+          opens: 'left',
+          buttonClasses: ['btn btn-default'],
+          applyClass: 'btn-small btn-primary',
+          cancelClass: 'btn-small',
+          format: 'DD.MM.YYYY',
+          separator: ' bis ',
+          locale: {
+            applyLabel: '<i class="fa fa-check"></i>',
+            cancelLabel: '<i class="fa fa-ban"></i>',
+            fromLabel: 'von',
+            toLabel: 'bis',
+            customRangeLabel: 'Eigenes...',
+            daysOfWeek: ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'],
+            monthNames: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
+            firstDay: 1
+          }
+        };
+        $('#reportrange span').html(moment().subtract(29, 'days').format('D MMMM, YYYY') + ' - ' + moment().format('D MMMM, YYYY'));
+        $('#reportrange').daterangepicker(optionSet1, cb);
+        $('#reportrange').on('show.daterangepicker', function() {
+          console.log("show event fired");
+        });
+        $('#reportrange').on('hide.daterangepicker', function() {
+          console.log("hide event fired");
+        });
+        $('#reportrange').on('apply.daterangepicker', function(ev, picker) {
+          console.log("apply event fired, start/end dates are " + picker.startDate.format('D MMMM, YYYY') + " bis " + picker.endDate.format('D MMMM, YYYY'));
+          $("#timerange_form").submit();
+        });
+        $('#reportrange').on('cancel.daterangepicker', function(ev, picker) {
+          console.log("cancel event fired");
+        });
+
+      });
+    </script>
+    <!-- /bootstrap-daterangepicker -->
+
+    <!-- Loadprofile/Flot -->
+    <script>
+        var options = {
+          series: {
+            lines: {
+              show: false,
+              fill: true
+            },
+            splines: {
+              show: true,
+              tension: 0.4,
+              lineWidth: 1,
+              fill: 0.4
+            },
+            points: {
+              radius: 0,
+              show: true
+            },
+            shadowSize: 2
+          },
+          legend: {
+            show: true,
+            position: "ne"
+          },
+          grid: {
+            verticalLines: true,
+            hoverable: true,
+            autoHighlight: true,
+            tickColor: "#d5d5d5",
+            borderWidth: 1,
+            color: '#fff'
+          },
+          tooltip: {
+            show: true,
+            content: "%x Uhr: %y Wh"
+          },
+          colors: ["rgba(38, 185, 154, 0.38)", "rgba(3, 88, 106, 0.38)"],
+          xaxis: {
+            tickColor: "rgba(51, 51, 51, 0.06)",
+            mode: "time",
+            timeformat: '%h',
+            timezone: "browser",
+            minTickSize: [1, "hour"],
+            maxTickSize: [1, "week"],
+            twelveHourClock: false,
+            //monthNames: optionSet1.locale.monthNames,
+            //dayNames: optionSet1.locale.daysOfWeek,
+            axisLabel: "Uhrzeit/Datum",
+            axisLabelUseCanvas: true,
+            axisLabelFontSizePixels: 12,
+            axisLabelFontFamily: 'Verdana, Arial',
+            axisLabelPadding: 10
+          },
+          yaxis: {
+            ticks: 8,
+            tickColor: "rgba(51, 51, 51, 0.06)",
+          },
+          tooltip: true
+        };
+
+        plot = $.plot($("#canvas_dahs"), [[]], options);
+
+        $("#timerange_form").submit(function(e) {
+            e.preventDefault()
+            var start = $("#timerange_start").val();
+            var end = $("#timerange_end").val();
+            ajaxLoadProfile('/api/loadprofile?format=json&start='+start+'&end='+end+'')
+        })
+
+        var interval = 1000 * 1 * 60;
+        setInterval(ajaxLoadProfile('/api/loadprofile?format=json'), interval);
+        function ajaxLoadProfile(_url) {
+            $.ajax({
+                type: 'GET',
+                contentType: 'application/json',
+                url: _url,
+                success: loadLoadProfile
+            });
+        }
+        ajaxLoadProfile('/api/loadprofile?format=json')
+
+        function gd(isoformat) {
+          return new Date(isoformat).getTime();
+        }
+
+        function loadLoadProfile(response) {
+            var data = response.data;
+            console.log("Made ajax request")
+
+            vals = [];
+            for(var i=0;i<data.length;i++) {
+                vals.push([gd(""+ data[i].saved_time +""), data[i].value_sum]);
+            }
+
+            plot.setData([vals]);
+            plot.setupGrid();
+            plot.draw();
+
+            var length = plot.getData()[0].data.length - 1;
+            var last_old = plot.getData()[0].data[length];
+
+            if(last_old != null && last_old != undefined) {
+                if(vals[length][0] !== last_old[0]) {
+                    console.log("There's new data, redraw the graph");
+                    plot.setData([vals]);
+                    plot.setupGrid();
+                    plot.draw();
+                }
+            } else {
+                console.log("Loaded data the first time");
+                plot.setData([vals]);
+                plot.setupGrid();
+                plot.draw();
+            }
+        }
+
+    </script>
+    <!-- /Loadprofile/Flot -->
+
+
+{% endblock %}

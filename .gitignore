@@ -1,8 +1,13 @@
 # Created by https://www.gitignore.io/api/python,django,pycharm,virtualenv,vim
 
-# own files #
+### Own ###
 my.cnf
 .idea/
+mmetering/migrations
+
+### Celery ###
+celerybeat-schedule.db
+dump.rdb
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
