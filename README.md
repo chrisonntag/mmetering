@@ -9,7 +9,7 @@ Provided you already installed (Python 3.x)[https://www.python.org/downloads/] a
 Create a new virtualenvironment and install all dependencies from ```requirements.txt``` using pip.
 ```bash
 python3 -m venv env/
-source env/bin/activate
+source env/mmetering_server/bin/activate
 pip install -r requirements.txt
 ```
 
@@ -72,12 +72,12 @@ sudo supervisorctl reread
 sudo supervisorctl update
 ```
 
-Use these commands followed by the programs name to start/stop or get it's status.
+Use these commands followed by the programs name {mmeteringcelery|mmeteringcelerybeat} to start/stop or get it's status.
 ```bash
 sudo supervisorctl stop [program_name]
 sudo supervisorctl start [program_name]
 sudo supervisorctl status [program_name]
-``
+```
 
 
 ## Setup
@@ -135,6 +135,8 @@ ImportWh = instrument.read_float(int('0x48', 16), functioncode=4, numberOfRegist
 | Import VArh since last reset (2). | kVArh      | 4C  | 2              |
 | Export VArh since last reset (2). | kVArh      | 4E  | 2              |
 | VAh since last reset (2).         | kVAh/ MVAh | 50  | 2              |
+
+---
 
 #### Holding Registers
 
