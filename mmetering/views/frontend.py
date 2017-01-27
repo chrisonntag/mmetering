@@ -14,22 +14,20 @@ class IndexView(TemplateView):
     data = DataOverview(request.GET)
     return render(request, 'mmetering/home.html', data.to_dict())
 
-def render_download(request):
-  # Create the HttpResponse object with the appropriate CSV header.
-  response = HttpResponse(content_type='text/csv')
-  response['Content-Disposition'] = 'attachment; filename="mmetering%s.csv"' % str(datetime.today())
+class DownloadView(TemplateView):
+  def get(self, request, *args, **kwargs):
+    # Create the HttpResponse object with the appropriate CSV header.
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="mmetering%s.csv"' % str(datetime.today())
 
-  data = CSVResponse().getData()
+    data = CSVResponse().getData()
 
-  writer = csv.writer(response)
-  writer.writerow(['Zaehlernummer', 'Uhrzeit', 'Wert'])
-  for i in range(0, len(data)):
-    writer.writerow(data[i])
+    writer = csv.writer(response)
+    writer.writerow(['Zaehlernummer', 'Uhrzeit', 'Wert'])
+    for i in range(0, len(data)):
+      writer.writerow(data[i])
 
-  return response
-
-def render_contact(request):
-  return render(request, 'mmetering/contact.html')
+    return response
 
 class ContactView(FormView):
   template_name = 'mmetering/contact.html'
@@ -42,5 +40,4 @@ class ContactView(FormView):
 
 class LoginView(TemplateView):
   def get(self, request, *args, **kwargs):
-    data = DataOverview(request.GET)
-    return render(request, 'mmetering/login.html', data.to_dict())
+    return render(request, 'mmetering/login.html')
