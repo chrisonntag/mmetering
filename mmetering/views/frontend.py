@@ -1,6 +1,7 @@
-from django.shortcuts import render, render_to_response
+from django.shortcuts import render, render_to_response, redirect
 from django.views import View
 from django.views.generic import TemplateView
+from django.contrib.auth import authenticate, login, logout
 from mmetering.summaries import DataOverview, CSVResponse
 import csv
 from django.http import HttpResponse
@@ -37,7 +38,3 @@ class ContactView(FormView):
   def form_valid(self, form):
     form.send_email()
     return super(ContactView, self).form_valid(form)
-
-class LoginView(TemplateView):
-  def get(self, request, *args, **kwargs):
-    return render(request, 'mmetering/login.html')

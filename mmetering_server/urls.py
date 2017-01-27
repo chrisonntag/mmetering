@@ -15,11 +15,14 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from django.contrib import admin
+from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import permission_required, login_required
 import mmetering.views as views
 
 urlpatterns = [
-    url(r'^$', views.LoginView.as_view(), name="login"),
+    url(r'^$', auth_views.login, name="login"),
+    url(r'^login/$', auth_views.login, name="login"),
+    url(r'^logout/$', auth_views.logout, name="logout"),
     url(r'^dashboard/$', permission_required("mmetering.can_view")(views.IndexView.as_view()), name="home"),
     url(r'^download/', permission_required("mmetering.can_download")(views.DownloadView.as_view()), name="download"),
     url(r'^contact/', views.ContactView.as_view(), name="contact"),
