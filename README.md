@@ -27,7 +27,7 @@ password = [PASS]
 default-character-set = utf8
 ```
 
-Set the __absolute path___ to this file in ```mmetering_server/settings.py```.
+Set the __absolute path__ to this file in ```mmetering_server/settings.py```.
 
 ### Django
 
