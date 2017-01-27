@@ -39,6 +39,18 @@
               </span>
             </div>
             <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
+              <span class="count_top"><i class="fa fa-percent"></i> Durchschnittsverbrauch</span>
+              <div class="count">{{ average.current|floatformat:0 }}<span class="mmetering_unit">{{ average.unit }}</span></div>
+              <span class="count_bottom">
+                  {% if average.current > average.last %}
+                    <i class="green"><i class="fa fa-sort-asc"></i>{{ average.current|as_percentage_of:average.last }} </i>
+                  {% elif average.current < average.last %}
+                    <i class="red"><i class="fa fa-sort-desc"></i>{{ average.current|as_percentage_of:average.last }} </i>
+                  {% endif %}
+                  seit gestern
+              </span>
+            </div>
+            <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
               <span class="count_top"><i class="fa fa-clock-o"></i> Tageshoch</span>
               <div class="count red">{{ time.day_high.saved_time.time }}<span class="mmetering_unit"> Uhr</span></div>
             </div>
@@ -56,18 +68,6 @@
                   {% if suppliers.num %}{{ suppliers.num }}
                   {% else %}0{% endif %}
               </div>
-            </div>
-            <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
-              <span class="count_top"><i class="fa fa-percent"></i> Durchschnittsverbrauch</span>
-              <div class="count">{{ average.current|floatformat:0 }}<span class="mmetering_unit">{{ average.unit }}</span></div>
-              <span class="count_bottom">
-                  {% if average.current > average.last %}
-                    <i class="green"><i class="fa fa-sort-asc"></i>{{ average.current|as_percentage_of:average.last }} </i>
-                  {% elif average.current < average.last %}
-                    <i class="red"><i class="fa fa-sort-desc"></i>{{ average.current|as_percentage_of:average.last }} </i>
-                  {% endif %}
-                  seit gestern
-              </span>
             </div>
           </div>
           <!-- /top tiles -->
