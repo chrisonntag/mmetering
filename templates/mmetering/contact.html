@@ -20,7 +20,7 @@
           <div class="x_content">
 
             <form role="form" class="form-horizontal form-label-left" action="" method="POST" novalidate>
-
+              {% csrf_token %}
               <p>{{ form.non_field_errors }}</p>
               <span class="section">Pers&ouml;nliche Informationen</span>
 
