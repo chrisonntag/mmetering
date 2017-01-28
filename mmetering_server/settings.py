@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 import os
+from django.core.urlresolvers import reverse_lazy
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -27,18 +28,21 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+# Set login page
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'home'
 
 # Application definition
 
 INSTALLED_APPS = [
+    'mmetering',
+    'backend',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'mmetering',
-    'backend',
     'rest_framework',
 ]
 
@@ -135,3 +139,9 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERYBEAT_MAX_LOOP_INTERVAL = 900
+
+#EMAIL SETTINGS
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_HOST = 'localhost'
+EMAIL_PORT = 1025
+DEFAULT_FROM_EMAIL = 'info@chrisonntag.com'

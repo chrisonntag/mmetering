@@ -1,0 +1,6 @@
+{% extends 'registration/login.html' %}
+
+{% block loginform %}
+    <h1>Erfolgreich abgemeldet!</h1>
+    <a href="{% url 'login' %}">Erneut anmelden?</a>
+{% endblock %}

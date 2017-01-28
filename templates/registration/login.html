@@ -8,14 +8,12 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>Gentallela Alela! | </title>
+    <title>MMetering - Login</title>
 
     <!-- Bootstrap -->
     <link href="{% static 'mmetering/vendors/bootstrap/dist/css/bootstrap.min.css' %}" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="{% static 'mmetering/vendors/font-awesome/css/font-awesome.min.css' %}" rel="stylesheet">
-    <!-- Animate.css -->
-    <link href="https://colorlib.com/polygon/gentelella/css/animate.min.css" rel="stylesheet">
 
     <!-- Custom Theme Style -->
     <link href="{% static 'mmetering/build/css/custom.min.css' %}" rel="stylesheet">
@@ -26,20 +24,32 @@
       <a class="hiddenanchor" id="signup"></a>
       <a class="hiddenanchor" id="signin"></a>
 
+      {% block content %}
       <div class="login_wrapper">
         <div class="animate form login_form">
           <section class="login_content">
-            <form>
+            <img width="200" height="110" src="{% static 'mmetering/images/logo.png' %}" />
+            {% block loginform %}
+            <form action="/login/" method="post">
+              {% csrf_token %}
+                {% if next %}
+                    <input type="hidden" name="next" value="{{ next }}" />
+                {% endif %}
               <h1>MMetering</h1>
               <div>
-                <input type="text" class="form-control" placeholder="Benutzername" required="" />
+                  {%  if form.errors %}
+                    <p>Benutzername und/oder Passwort sind falsch oder sie haben keinen Mitarbeiter-Status</p>
+                  {% endif %}
               </div>
               <div>
-                <input type="password" class="form-control" placeholder="Passwort" required="" />
+                <input type="text" name="username" class="form-control" placeholder="Benutzername" required="" />
               </div>
               <div>
-                <a class="btn btn-default submit" href="/dashboard">Einloggen</a>
-                <a class="reset_pass" href="#">Passwort vergessen?</a>
+                <input type="password" name="password" class="form-control" placeholder="Passwort" required="" />
+              </div>
+              <div>
+                <input type="submit" class="btn btn-default submit" value="Einloggen" href="/dashboard" />
+                <a class="reset_pass" href="mailto:mmetering@chrisonntag.com">Passwort vergessen?</a>
               </div>
 
               <div class="clearfix"></div>
@@ -55,6 +65,7 @@
                 </div>
               </div>
             </form>
+            {% endblock loginform %}
           </section>
         </div>
 
@@ -94,6 +105,8 @@
           </section>
         </div>
       </div>
+      {% endblock %}
+
     </div>
   </body>
 </html>

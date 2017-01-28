@@ -15,17 +15,21 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from django.contrib import admin
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth import views as auth_views
+from django.contrib.auth.decorators import permission_required, login_required
 import mmetering.views as views
 
 urlpatterns = [
-    url(r'^$', views.LoginView.as_view(), name="login"),
-    url(r'^dashboard/$', views.IndexView.as_view(), name="home"),
+    url(r'^login/$', auth_views.login, name="login"),
+    url(r'^admin/login/$', auth_views.login, name="login"),
+    url(r'^logout/$', auth_views.logout, name="logout"),
+    url(r'^$', permission_required("mmetering.can_view")(views.IndexView.as_view()), name="home"),
+    url(r'^dashboard/$', permission_required("mmetering.can_view")(views.IndexView.as_view()), name="home"),
+    url(r'^download/', permission_required("mmetering.can_download")(views.DownloadView.as_view()), name="download"),
+    url(r'^contact/', views.ContactView.as_view(), name="contact"),
+    url(r'^admin/', admin.site.urls),
+    url(r'^accounts/login/$', admin.site.login), #used for making permission_required decorator work
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^api/loadprofile/$', views.APILoadProfileView.as_view()),
     url(r'^api/overview/$', views.APIDataOverviewView.as_view()),
-    url(r'^admin/', admin.site.urls),
-    url(r'^download/', login_required(views.render_download), name="download"),
-    url(r'^contact/', views.ContactView.as_view(), name="contact"),
-    url(r'^accounts/login/$', admin.site.login) #used for making login_required decorator work
 ]

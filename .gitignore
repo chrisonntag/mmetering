@@ -4,6 +4,8 @@
 my.cnf
 .idea/
 mmetering/migrations
+docker-compose.yml
+.data/
 
 ### Celery ###
 celerybeat-schedule.db

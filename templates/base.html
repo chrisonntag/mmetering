@@ -22,7 +22,7 @@
 
   </head>
 
-  <body class="nav-md">
+  <body class="nav-sm">
     <div class="container body">
       <div class="main_container">
         <div class="col-md-3 left_col">
@@ -38,9 +38,9 @@
               <div class="menu_section">
                 <h3>General</h3>
                 <ul class="nav side-menu">
-                  <li><a href="{% url 'home' %}"><i class="fa fa-home"></i> Home</a></li>
+                  <li><a href="{% url 'home' %}"><i class="fa fa-home"></i> &Uuml;bersicht</a></li>
                   <li><a href="{% url 'download' %}"><i class="fa fa-download"></i> Download</a></li>
-                  <li><a href="{% url 'contact' %}"><i class="fa fa-envelope"></i> Contact</a></li>
+                  <li><a href="{% url 'contact' %}"><i class="fa fa-envelope"></i> Kontakt</a></li>
                   <!--
                   <li><a><i class="fa fa-table"></i> Tables <span class="fa fa-chevron-down"></span></a>
                     <ul class="nav child_menu">
@@ -85,7 +85,11 @@
 
               <ul class="nav navbar-nav navbar-right">
 
-                  <li><a href="{% url 'admin:index' %}"><i class="fa fa-sign-in" aria-hidden="true"></i> Login</a></li>
+                  {% if user.is_authenticated %}
+                    <li><a href="{% url 'logout' %}?next=/"><i class="fa fa-sign-out" aria-hidden="true"></i> Logout</a></li>
+                  {% else %}
+                    <li><a href="{% url 'admin:index' %}"><i class="fa fa-sign-in" aria-hidden="true"></i> Login</a></li>
+                  {% endif %}
 
               </ul>
             </nav>
