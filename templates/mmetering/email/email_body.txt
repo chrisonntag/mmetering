@@ -1,5 +1,7 @@
-{{message|linebreaks|safe}}
+{{message}}
 
+Viele Grüsse,
+{{ name }}
 
 ------
 Gesendet von MMetering

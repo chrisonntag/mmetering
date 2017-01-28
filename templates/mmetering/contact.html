@@ -18,7 +18,6 @@
             <div class="clearfix"></div>
           </div>
           <div class="x_content">
-
             <form role="form" class="form-horizontal form-label-left" action="" method="POST" novalidate>
               {% csrf_token %}
               <p>{{ form.non_field_errors }}</p>
@@ -51,8 +50,8 @@
               <div class="ln_solid"></div>
               <div class="form-group">
                 <div class="col-md-6 col-md-offset-3">
-                  <button type="submit" class="btn btn-primary">Cancel</button>
-                  <button id="send" type="submit" class="btn btn-success">Submit</button>
+                  <button type="submit" class="btn btn-primary">Abbrechen</button>
+                  <input id="send" type="submit" class="btn btn-success" value="Senden"></input>
                   {{ form.submit }}
                 </div>
               </div>
@@ -75,7 +74,9 @@
     <!-- validator -->
     <script>
       // initialize the validator function
-      validator.message.date = 'not a real date';
+      validator.message.email = "Bitte eine echte E-mail Adresse angeben";
+      validator.message.required = 'Dieses Feld wird benötigt';
+      validator.message.empty = 'Dieses Feld wird benötigt';
 
       // validate a field on "blur" event, a 'select' on 'change' event & a '.reuired' classed multifield on 'keyup':
       $('form')

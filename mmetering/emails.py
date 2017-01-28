@@ -4,8 +4,8 @@ from django.template import Context
 from django.template.loader import render_to_string
 
 
-def send_email(name, email, message):
-    c = Context({'email': email, 'message': message})
+def send_contact_email(name, email, message):
+    c = Context({'name': name, 'email': email, 'message': message})
 
     email_subject = render_to_string(
         'mmetering/email/email_subject.txt', c).replace('\n', '')
