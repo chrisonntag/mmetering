@@ -79,6 +79,17 @@ sudo supervisorctl start [program_name]
 sudo supervisorctl status [program_name]
 ```
 
+### SMTP-Server
+__TODO__  
+In order to send mails when the system fails, you need to setup a SMTP server on your machine and change the following
+things in ```settings.py```:
+
+```python
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_HOST = <host>'localhost'
+EMAIL_PORT = <port>1025
+DEFAULT_FROM_EMAIL = <your_mail>
+```
 
 ## Setup
 
