@@ -29,6 +29,7 @@
         <div class="animate form login_form">
           <section class="login_content">
             <img width="200" height="110" src="{% static 'mmetering/images/logo.png' %}" />
+            {% block loginform %}
             <form action="/login/" method="post">
               {% csrf_token %}
                 {% if next %}
@@ -64,6 +65,7 @@
                 </div>
               </div>
             </form>
+            {% endblock loginform %}
           </section>
         </div>
 
