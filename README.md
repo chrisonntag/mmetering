@@ -1,10 +1,23 @@
 # mmetering-server
 
-... to be continued
+MMetering is a smart metering software built on Django and Celery.
 
-## Install
+## Table of Contents
 
-Provided you already installed (Python 3.x)[https://www.python.org/downloads/] and (pip)[https://bootstrap.pypa.io/get-pip.py]
+1. [Install](#install)
+    1. [MySQL](#mysql)
+    2. [Django](#django)
+    3. [Celery Workers](#celery)
+    4. [SMTP-Server](#smtp)
+2. [Setup](#setup)
+3. [Additional Information](#additional)
+4. [Appendix](#appendix)
+5. [References](#references)
+
+## Install <a name="install"></a>
+
+Provided you already installed [Python 3.x](https://www.python.org/downloads/) and
+[pip](https://bootstrap.pypa.io/get-pip.py)
 
 Create a new virtualenvironment and install all dependencies from ```requirements.txt``` using pip.
 ```bash
@@ -13,7 +26,7 @@ source env/mmetering_server/bin/activate
 pip install -r requirements.txt
 ```
 
-### MySQL
+### MySQL <a name="mysql"></a>
 
 Create a new user and a database (e.g. MMETERING) and grant all privileges. After that, copy ```my.sample.cnf```
 and rename it to ```my.cnf```. Change the file according to what you specified before.
@@ -29,7 +42,7 @@ default-character-set = utf8
 
 Set the __absolute path__ to this file in ```mmetering_server/settings.py```.
 
-### Django
+### Django <a name="django"></a>
 
 Run the following commands to migrate and start the server.
 
@@ -44,7 +57,7 @@ python3 manage.py runserver 127.0.0.1:8000
 
 For production don't use the django-built-in server but instead use Apache with modwsgi.
 
-### Celery workers
+### Celery workers <a name="celery"></a>
 
 Simply start both workers in different terminal windows with
 
@@ -79,7 +92,7 @@ sudo supervisorctl start [program_name]
 sudo supervisorctl status [program_name]
 ```
 
-### SMTP-Server
+### SMTP-Server <a name="smtp"></a>
 __TODO__  
 In order to send mails when the system fails, you need to setup a SMTP server on your machine and change the following
 things in ```settings.py```:
@@ -91,7 +104,7 @@ EMAIL_PORT = <port>1025
 DEFAULT_FROM_EMAIL = <your_mail>
 ```
 
-## Setup
+## Setup <a name="setup"></a>
 
 ### Add user
 
@@ -111,7 +124,7 @@ Note: Both users need to have staff status in order to be able to login at all.
 Log into the admin backend with either the admin or the service provider account. Follow all instructions.
 
 
-## Additional information
+## Additional information <a name="additional"></a>
 
 ### Talking Modbus using the minimalmodbus library
 - functioncode 4: read Input Registers
@@ -124,7 +137,7 @@ Log into the admin backend with either the admin or the service provider account
 ImportWh = instrument.read_float(int('0x48', 16), functioncode=4, numberOfRegisters=2)
 ```
 
-## Appendix
+## Appendix <a name="appendix"></a>
 
 ### Eastron SDM630
 #### Input Registers
@@ -159,3 +172,6 @@ ImportWh = instrument.read_float(int('0x48', 16), functioncode=4, numberOfRegist
 | 40045   | Serial Number Lo  | 2C  | ?              | Read the second product serial number.                                                                                                                                                    | ro   |
 
 
+## References <a name="references"></a>
+
+This software is using the wonderful [Gentelella Theme](https://github.com/puikinsh/gentelella).
