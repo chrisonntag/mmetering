@@ -6,6 +6,7 @@ my.cnf
 mmetering/migrations
 docker-compose.yml
 .data/
+/mmetering_server/settings/production.py
 
 ### Celery ###
 celerybeat-schedule.db
@@ -25,7 +26,6 @@ __pycache__/
 env/
 build/
 develop-eggs/
-dist/
 downloads/
 eggs/
 .eggs/
