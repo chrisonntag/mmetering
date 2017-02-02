@@ -4,3 +4,15 @@ host = <your_host>
 user = <user>
 password = <pass>
 default-character-set = utf8
+
+[status]
+production = false
+
+[mail]
+host = <host>
+user = <username>
+password = <password>
+ssl = <boolean:ssl>
+tls = <boolean:tls>
+port = <port>
+from <yourmail>
