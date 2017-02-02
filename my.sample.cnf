@@ -16,3 +16,6 @@ ssl = <boolean:ssl>
 tls = <boolean:tls>
 port = <port>
 from <yourmail>
+
+[variables]
+secretkey = m3*+bby-mll*jdfhb21*!yv)x+sgga-6d_9he6gt_chcburqzb
