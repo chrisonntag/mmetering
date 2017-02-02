@@ -67,7 +67,7 @@ class Overview:
 
   def getAverageConsumption(self, until):
     total = self.getTotal(until)
-    if not total:
+    if total:
       return sum(total)/len(total) / 1000
     else:
       return 0
