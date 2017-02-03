@@ -1,4 +1,5 @@
-# mmetering-server
+# mmetering-server 
+[![Build Status](http://ci.mmetering.chrisonntag.com/job/mmetering-server/badge/icon)](http://ci.mmetering.chrisonntag.com/job/mmetering-server)
 
 MMetering is a smart metering software built on Django and Celery.
 
