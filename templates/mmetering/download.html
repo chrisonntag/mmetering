@@ -11,7 +11,83 @@
     <div class="right_col" role="main">
       <div class="row">
 
+          <div class="col-md-12 col-sm-12 col-xs-12">
+            <div class="x_panel">
+              <div class="x_title">
+                <h2>Download <small></small></h2>
+                  <ul class="nav navbar-right panel_toolbox">
+                    <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                    </li>
+                    <li class="dropdown">
+                      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>
+                      <ul class="dropdown-menu" role="menu">
+                        <li><a href="/admin">Admin</a>
+                        </li>
+                      </ul>
+                    </li>
+                    <li><a class="close-link"><i class="fa fa-close"></i></a>
+                    </li>
+                  </ul>
+                <div class="clearfix"></div>
+              </div>
+              <div class="x_content">
+                <p>Bitte w&auml;hlen sie die entsprechende Datei aus:</p>
+                <ul class="nav nav-pills" role="tablist">
+                    <li role="presentation" class="dropdown">
+                      <a id="drop4" href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" role="button" aria-expanded="false">
+                          Ausw&auml;hlen
+                          <span class="caret"></span>
+                      </a>
+                      <ul id="menu" class="dropdown-menu animated fadeInDown download-menu" role="menu">
+                        <li role="presentation"><a role="menuitem" tabindex="-1" data-format="csv" href="#">Als *.csv herunterladen</a>
+                        </li>
+                        <li role="presentation"><a role="menuitem" tabindex="-1" data-format="xls" href="#">Als *.xls herunterladen</a>
+                        </li>
+                        <li role="presentation" class="divider"></li>
+                        <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Einstellungen</a>
+                      </ul>
+                    </li>
+                </ul>
+
+                <div class="download_logger hidden">
+                    <p>
+                        <img height="50" width="50" src="{% static 'mmetering/images/loading.gif' %}" class="loader" />
+                        Lade herunter ...
+                    </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
       </div>
     </div>
     <!-- /page content -->
+{% endblock %}
+
+{% block additionalJS %}
+    <script>
+        $(function(){
+
+            function checkIFrame() {
+                iframe = document.getElementById('download-iframe');
+                var iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                // Check if loading is complete
+                if (iframeDoc.readyState == 'complete' || iframeDoc.readyState == 'interactive') {
+                    $('.download_logger').addClass('hidden');
+                    return;
+                }
+            }
+
+            $('.download-menu > li > a').click(function() {
+                $('.download_logger').removeClass('hidden');
+                var url = '/download?format=' + $(this).attr('data-format');
+
+                $("#download-iframe").remove()
+                var iframe = '<iframe style="display:none;" id="download-iframe" src="' + url + '">';
+                $(iframe).appendTo('body');
+                timer = setInterval(checkIFrame(), 2000);
+            });
+
+        });
+    </script>
 {% endblock %}
