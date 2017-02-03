@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime, timedelta, date
 from django.db.models import Max, Sum, Count, F, Avg, Q
-from mmetering.models import Flat, Meter, MeterData
+from mmetering.models import Flat, Meter, MeterData, Activities
 
 class Overview:
   def __init__(self, filters):
@@ -96,7 +96,8 @@ class DataOverview(Overview):
         'current': self.getAverageConsumption(self.times['today']),
         'last': self.getAverageConsumption(self.times['yesterday']),
         'unit': 'kWh'
-      }
+      },
+      'activities': Activities.objects.all().order_by('-timestamp')[:6]
     }
 
 class CSVResponse:

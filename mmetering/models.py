@@ -49,3 +49,14 @@ class MeterData(models.Model):
             ("can_view", "Can view MeterData"),
         )
 
+class Activities(models.Model):
+    title = models.CharField(max_length=70, help_text="Titel")
+    text = models.CharField(max_length=300, help_text="Inhalt")
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return 'Aktivität'
+
+    class Meta:
+        verbose_name = "Aktivität"
+        verbose_name_plural = "Aktivitäten"
