@@ -1,0 +1,3 @@
+mmetering/static* linguist-vendored
+backend/static* linguist-vendored
+docs/* linguist-documentation
