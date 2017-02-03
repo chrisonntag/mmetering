@@ -5,6 +5,7 @@ from django.shortcuts import render, render_to_response, redirect
 from django.views import View
 from django.views.generic import TemplateView
 from django.contrib.auth import authenticate, login, logout
+from mmetering.models import Activities
 from mmetering.summaries import DataOverview, CSVResponse
 from django.http import HttpResponse
 from datetime import datetime
@@ -18,7 +19,7 @@ class IndexView(TemplateView):
     return render(request, 'mmetering/home.html', data.to_dict())
 
 class DownloadView(TemplateView):
-  def getCSV(self):
+  def getCSV(self, request):
     # Create the HttpResponse object with the appropriate CSV header.
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="mmetering%s.csv"' % str(datetime.today())
@@ -30,9 +31,14 @@ class DownloadView(TemplateView):
     for i in range(0, len(data)):
       writer.writerow(data[i])
 
+    text = "Der Benutzer %s hat eine Zusammenfassung der " \
+           "Verbrauchsdaten bis zum %s heruntergeladen" % (request.user.username, datetime.today())
+    activity = Activities(title="CSV-Datei heruntergeladen", text=text)
+    activity.save()
+
     return response
 
-  def getXLS(self):
+  def getXLS(self, request):
     output = io.BytesIO()
     data = CSVResponse().getData()
 
@@ -61,14 +67,19 @@ class DownloadView(TemplateView):
                             content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     response['Content-Disposition'] = 'attachment; filename="mmetering%s.xlsx"' % str(datetime.today())
 
+    text = "Der Benutzer %s hat eine Zusammenfassung der " \
+           "Verbrauchsdaten bis zum %s heruntergeladen" % (request.user.username, datetime.today())
+    activity = Activities(title = "Excel-Datei heruntergeladen", text = text)
+    activity.save()
+
     return response
 
   def get(self, request, *args, **kwargs):
     format = request.GET.get('format');
     if format == 'csv':
-      return self.getCSV()
+      return self.getCSV(request)
     elif format == 'xls':
-      return self.getXLS()
+      return self.getXLS(request)
     else:
       return render(request, 'mmetering/download.html', {})
 
