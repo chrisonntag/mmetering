@@ -66,18 +66,26 @@
 
 {% block additionalJS %}
     <script>
-        $(document).ready(function() {
+        $(function(){
 
-            function downloadData(_format) {
-                $.get('/download?format='+_format, function() {
-                    document.location.href = '/download?format='+_format;
+            function checkIFrame() {
+                iframe = document.getElementById('download-iframe');
+                var iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                // Check if loading is complete
+                if (iframeDoc.readyState == 'complete' || iframeDoc.readyState == 'interactive') {
                     $('.download_logger').addClass('hidden');
-                });
+                    return;
+                }
             }
 
             $('.download-menu > li > a').click(function() {
-                downloadData($(this).attr('data-format'));
                 $('.download_logger').removeClass('hidden');
+                var url = '/download?format=' + $(this).attr('data-format');
+
+                $("#download-iframe").remove()
+                var iframe = '<iframe style="display:none;" id="download-iframe" src="' + url + '">';
+                $(iframe).appendTo('body');
+                timer = setInterval(checkIFrame(), 2000);
             });
 
         });
