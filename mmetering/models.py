@@ -38,7 +38,7 @@ class Meter(models.Model):
 class MeterData(models.Model):
     meter = models.ForeignKey(Meter, on_delete=models.CASCADE)
     saved_time = models.DateTimeField()
-    value = models.IntegerField()
+    value = models.FloatField()
 
     def __str__(self):
         return "Datenwert für Wohnung " + self.meter.flat.name

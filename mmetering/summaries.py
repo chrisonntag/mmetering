@@ -45,7 +45,7 @@ class Overview:
         saved_time__range=[start, end]
       ) \
       .values('saved_time') \
-      .annotate(value_sum=Sum('value'))
+      .annotate(value_sum=Sum('value')*1000) # displays data in Wh, DB values are in kWh
     return data
 
   def getTotal(self, until):
