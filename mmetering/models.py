@@ -22,14 +22,16 @@ class Meter(models.Model):
     flat = models.OneToOneField(Flat, verbose_name="Wohnung")
     addresse = models.IntegerField(default=0, help_text="Addresse, auf der der Zähler erreichbar ist")
     seriennummer = models.CharField(max_length=45, help_text="Seriennummer (hinten auf Zähler)")
-    init_datetime = models.DateTimeField()
-    start_datum = models.DateField(null=True, blank=True, help_text="wird automatisch ausgefüllt")
-    start_zeit = models.TimeField(null=True, blank=True, help_text="wird automatisch ausgefüllt")
-    end_datum = models.DateField(null=True, blank=True, help_text="wird automatisch ausgefüllt")
-    end_zeit = models.TimeField(null=True, blank=True, help_text="wird automatisch ausgefüllt")
+    init_datetime = models.DateTimeField(auto_now_add=True)
+    start_datetime = models.DateTimeField(null=True,
+                                          blank=True,
+                                          help_text="wird automatisch ausgefüllt", verbose_name="Laufzeit Start")
+    end_datetime = models.DateTimeField(null=True,
+                                        blank=True,
+                                        verbose_name="Laufzeit Ende")
 
     def __str__(self):
-        return 'Zähler in Wohnung ' + self.flat.name
+        return 'Zähler in ' + self.flat.name
 
     class Meta:
         verbose_name = "Zähler"
@@ -41,7 +43,7 @@ class MeterData(models.Model):
     value = models.FloatField()
 
     def __str__(self):
-        return "Datenwert für Wohnung " + self.meter.flat.name
+        return "Datenwert für " + self.meter.flat.name
 
     class Meta:
         permissions = (
