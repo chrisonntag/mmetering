@@ -2,6 +2,7 @@ import datetime
 
 from django.db import models
 from django.utils import timezone
+from django.core.exceptions import ValidationError
 
 class Flat(models.Model):
     MODE_TYPES = (
@@ -32,6 +33,12 @@ class Meter(models.Model):
 
     def __str__(self):
         return 'Zähler in ' + self.flat.name
+
+    def clean(self):
+        # Make sure expiry or start time cannot be in the past
+        if ((not None in [self.start_datetime, self.end_datetime]) and
+            (self.start_datetime <= datetime.datetime.today() and self.end_datetime <= datetime.datetime.today())):
+            raise ValidationError('Start- und Endzeit dürfen nicht in der Vergangenheit liegen.')
 
     class Meta:
         verbose_name = "Zähler"
