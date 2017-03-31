@@ -12,3 +12,7 @@ def as_percentage_of(part, whole):
         return "%d%%" % (result)
     except (ValueError, ZeroDivisionError):
         return "keine Daten"
+
+@register.filter
+def subtract(value, arg):
+    return value - arg
