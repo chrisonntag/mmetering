@@ -72,7 +72,20 @@
             </div>
             <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
               <span class="count_top"><i class="fa fa-home"></i> Verbraucher</span>
-              <div class="count">{{ consumers.num }}</div>
+              <div class="count">
+                   {% if consumers.num %}{{ consumers.num }}
+                   {% else %}0{% endif %}
+              </div>
+              <span class="count_bottom">
+                  <i class="green">
+                      <i class="fa fa-circle"></i>
+                      {{ active_consumers.num }}
+                  </i> aktiv<br />
+                  <i class="red">
+                      <i class="fa fa-circle"></i>
+                      {{ consumers.num|subtract:active_consumers.num }}
+                  </i> nicht aktiv
+              </span>
             </div>
             <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
               <span class="count_top"><i class="fa fa-user"></i> Lieferanten</span>
@@ -80,6 +93,16 @@
                   {% if suppliers.num %}{{ suppliers.num }}
                   {% else %}0{% endif %}
               </div>
+             <span class="count_bottom">
+                  <i class="green">
+                      <i class="fa fa-circle"></i>
+                      {{ active_suppliers.num }}
+                  </i> aktiv<br />
+                  <i class="red">
+                      <i class="fa fa-circle"></i>
+                      {{ suppliers.num|subtract:active_suppliers.num }}
+                  </i> nicht aktiv
+              </span>
             </div>
           </div>
           <!-- /top tiles -->

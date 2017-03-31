@@ -30,6 +30,7 @@ class Meter(models.Model):
     end_datetime = models.DateTimeField(null=True,
                                         blank=True,
                                         verbose_name="Laufzeit Ende")
+    active = models.BooleanField(default=False, verbose_name="Aktivieren")
 
     def __str__(self):
         return 'Zähler in ' + self.flat.name

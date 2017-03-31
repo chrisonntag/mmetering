@@ -82,7 +82,9 @@ class DataOverview(Overview):
   def to_dict(self):
     return {
       'consumers': Flat.objects.filter(modus='IM').aggregate(num=Count('name')),
+      'active_consumers': Meter.objects.filter(flat__modus='IM', active=True).aggregate(num=Count('addresse')),
       'suppliers': Flat.objects.filter(modus='EX').aggregate(num=Count('name')),
+      'active_suppliers': Meter.objects.filter(flat__modus='EX', active=True).aggregate(num=Count('addresse')),
       'consumption': {
         'total': self.getTotalConsumption(date.today()),
         'total_last_week': self.getTotalConsumption(self.times['last_week'][1]),

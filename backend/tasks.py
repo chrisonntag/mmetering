@@ -22,7 +22,7 @@ class MeterObject:
     if (settings.PRODUCTION):
       # port name, slave address (in decimal)
       self.instrument = minimalmodbus.Instrument('/dev/ttyUSB0', address)
-      self.instrument.serial.timeout = 6.0 #sec
+      self.instrument.serial.timeout = 3.0 #sec
 
       try:
         # check if we can get the baud rate from the device
@@ -68,24 +68,25 @@ class MeterObject:
       else:
         return self.getInputRegister('0x48', 2)
     else:
-      print("%s: Celery beat is requesting meter data from the device." % datetime.today(), file=sys.stderr)
+      print("%s: Celery beat is requesting meter data from the device with address %d" % (datetime.today(), self.getAddress()),
+            file=sys.stdout)
 
   def printValue(self):
     print("Verbrauch: {} Wh".format(self.getValue()))
 
 
 class MeterDataLoaderTask(PeriodicTask):
-  run_every = crontab(minute="*/15")  # timedelta(seconds=6)#
+  run_every = timedelta(seconds=6)#crontab(minute="*/15")  #
 
   def __init__(self):
-    self.meters_IM = Meter.objects.filter(flat__modus__exact='IM').values_list('id',
-                                                                              'addresse',
-                                                                              'start_datetime',
-                                                                              'end_datetime')
-    self.meters_EX = Meter.objects.filter(flat__modus__exact='IM').values_list('id',
-                                                                              'addresse',
-                                                                              'start_datetime',
-                                                                              'end_datetime')
+    self.meters_IM = Meter.objects.filter(flat__modus__exact='IM', active=True).values_list('id',
+                                                                                            'addresse',
+                                                                                            'start_datetime',
+                                                                                            'end_datetime')
+    self.meters_EX = Meter.objects.filter(flat__modus__exact='EX', active=True).values_list('id',
+                                                                                            'addresse',
+                                                                                            'start_datetime',
+                                                                                            'end_datetime')
     self.meter_objects_IM = [MeterObject(id, address, start, end, 'IM') for id, address, start, end in self.meters_IM]
     self.meter_objects_EX = [MeterObject(id, address, start, end, 'EX') for id, address, start, end in self.meters_EX]
 
@@ -98,45 +99,21 @@ class MeterDataLoaderTask(PeriodicTask):
     value = MeterData(meter_id=id, saved_time=datetime, value=val)
     value.save()
 
-  def loadData(self):
-    if (not settings.PRODUCTION):
-      for meter in self.meter_objects_IM:
-        if(meter.getStart != None):
-          self.updateStartDate(meter.getId())
+  def loadData(self, objects):
+    for meter in objects:
+      if meter.getStart() is None:
+        self.updateStartDate(meter.getId())
 
-        value = None
-        try:
-          value = meter.getValue()
-        except RuntimeError:
-          print("There has been an error", file=sys.stderr)
-          print("Exception: ", exc_info=True, file=sys.stderr)
+      value = None
+      try:
+        value = meter.getValue()
+      except RuntimeError:
+        print("There has been an error", file=sys.stderr)
+        print("Exception: ", exc_info=True, file=sys.stderr)
 
-        if value != None:
-          self.saveValue(meter.getId(), datetime.today(), meter.getValue())
-
-      for meter in self.meter_objects_EX:
-        if (meter.getStart != None):
-          self.updateStartDate(meter.getId())
-
-        value = None
-        try:
-          value = meter.getValue()
-        except RuntimeError:
-          print("There has been an error", file=sys.stderr)
-          print("Exception: ", exc_info=True, file=sys.stderr)
-
-        if value != None:
-          self.saveValue(meter.getId(), datetime.today(), meter.getValue())
-    else:
-      meter_string = ""
-      for meter in self.meter_objects:
-        meter_string += "("+meter.getId()+", "+meter.getAddress()+", "+meter.getModus()+"), "
-      activity = Activities(title="DEBUG: Zählerdaten wurden gespeichert",
-                            text="MeterDataLoaderTask() wurde für %d Zähler ausgelöst. "
-                                 "%s" % (len(self.meter_objects), meter_string),
-                            timestamp=datetime.today()
-                            )
-      activity.save()
+      if value is not None:
+        self.saveValue(meter.getId(), datetime.today(), value)
 
   def run(self):
-    self.loadData()
+    self.loadData(self.meter_objects_IM)
+    self.loadData(self.meter_objects_EX)
