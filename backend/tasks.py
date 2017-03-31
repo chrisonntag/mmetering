@@ -76,7 +76,7 @@ class MeterObject:
 
 
 class MeterDataLoaderTask(PeriodicTask):
-  run_every = timedelta(seconds=6)#crontab(minute="*/15")  #
+  run_every = crontab(minute="*/15")  #timedelta(seconds=6)#
 
   def __init__(self):
     self.meters_IM = Meter.objects.filter(flat__modus__exact='IM', active=True).values_list('id',
