@@ -344,14 +344,14 @@
               fill: 0.4
             },
             points: {
-              radius: 0,
+              radius: 1,
               show: true
             },
+            legend: {
+              show: true,
+              position: 'ne'
+            },
             shadowSize: 2
-          },
-          legend: {
-            show: true,
-            position: "ne"
           },
           grid: {
             verticalLines: true,
@@ -359,11 +359,7 @@
             autoHighlight: true,
             tickColor: "#d5d5d5",
             borderWidth: 1,
-            color: '#fff'
-          },
-          tooltip: {
-            show: true,
-            content: "%x Uhr: %y Wh"
+            color: '#b2b2b2'
           },
           colors: ["rgba(38, 185, 154, 0.38)", "rgba(3, 88, 106, 0.38)"],
           xaxis: {
@@ -386,7 +382,10 @@
             ticks: 8,
             tickColor: "rgba(51, 51, 51, 0.06)",
           },
-          tooltip: true
+          tooltip: {
+            show: true,
+            content: "%x Uhr: %y Wh"
+          }
         };
 
         plot = $.plot($("#canvas_dahs"), [[]], options);
@@ -415,15 +414,26 @@
         }
 
         function loadLoadProfile(response) {
-            var data = response.data;
+            var consumption = response.consumption;
+            var supply = response.supply;
             console.log("Made ajax request")
 
-            vals = [];
-            for(var i=0;i<data.length - 1;i++) {
-                vals.push([gd(""+ data[i].saved_time +""), data[i+1].value_sum - data[i].value_sum]);
+            consumption_values = [];
+            for(var i=0;i<consumption.length - 1;i++) {
+                consumption_values.push([gd(""+ consumption[i].saved_time +""),
+                    consumption[i+1].value_sum - consumption[i].value_sum]);
             }
 
-            plot.setData([vals]);
+            supply_values = [];
+            for(var i=0;i<supply.length - 1;i++) {
+                supply_values.push([gd(""+ supply[i].saved_time +""),
+                    supply[i+1].value_sum - supply[i].value_sum]);
+            }
+
+            plot.setData([
+                {label: '&nbsp;Verbrauch', data: consumption_values},
+                {label: '&nbsp;Erzeugnis', data: supply_values}
+                ]);
             plot.setupGrid();
             plot.draw();
 
@@ -431,15 +441,15 @@
             var last_old = plot.getData()[0].data[length];
 
             if(last_old != null && last_old != undefined) {
-                if(vals[length][0] !== last_old[0]) {
+                if(consumption_values[length][0] !== last_old[0]) {
                     console.log("There's new data, redraw the graph");
-                    plot.setData([vals]);
+                    plot.setData([consumption_values, supply_values]);
                     plot.setupGrid();
                     plot.draw();
                 }
             } else {
                 console.log("Loaded data the first time");
-                plot.setData([vals]);
+                plot.setData([consumption_values, supply_values]);
                 plot.setupGrid();
                 plot.draw();
             }
