@@ -1,4 +1,5 @@
 import datetime
+import minimalmodbus
 
 from django.db import models
 from django.utils import timezone
@@ -36,10 +37,30 @@ class Meter(models.Model):
         return 'Zähler in ' + self.flat.name
 
     def clean(self):
+        error_dict = {}
         # Make sure expiry or start time cannot be in the past
-        if ((not None in [self.start_datetime, self.end_datetime]) and
-            (self.start_datetime <= datetime.datetime.today() and self.end_datetime <= datetime.datetime.today())):
-            raise ValidationError('Start- und Endzeit dürfen nicht in der Vergangenheit liegen.')
+        """
+        if (self.start_datetime is not None and
+            (self.start_datetime <= datetime.datetime.today())):
+            error_dict['start_datetime'] = ValidationError('Die Startzeit darf nicht in der Vergangenheit liegen.')
+
+        if (self.end_datetime is not None and
+            (self.end_datetime <= datetime.datetime.today())):
+            error_dict['end_datetime'] = ValidationError('Die Endzeit darf nicht in der Vergangenheit liegen.')
+        """
+
+        # Check if devices with specified address are accessable
+        if self.active is True:
+            try:
+                # see if we can get the baud rate from the device
+                instrument = minimalmodbus.Instrument('/dev/ttyUSB0', self.addresse)
+                baud = instrument.read_float(int('0x1C', 16), functioncode=3, numberOfRegisters=2)
+            except OSError:
+                error_dict['active'] =  ValidationError(
+                    'Zu dem Zähler mit der Adresse %d kann keine Verbindung aufgebaut werden' % self.addresse)
+
+        if error_dict:
+            raise ValidationError(error_dict)
 
     class Meta:
         verbose_name = "Zähler"
