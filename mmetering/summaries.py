@@ -38,10 +38,10 @@ class Overview:
     else:
       return True
 
-  def getDataRange(self, start, end):
+  def getDataRange(self, start, end, mode):
     data = MeterData.objects.all() \
       .filter(
-        meter__flat__modus__exact='IM',
+        meter__flat__modus__exact=mode,
         saved_time__range=[start, end]
       ) \
       .values('saved_time') \
@@ -75,7 +75,8 @@ class Overview:
 class LoadProfileOverview(Overview):
   def to_dict(self):
     return {
-      'data': self.getDataRange(self.timerange[0], self.timerange[1])
+      'consumption': self.getDataRange(self.timerange[0], self.timerange[1], 'IM'),
+      'supply': self.getDataRange(self.timerange[0], self.timerange[1], 'EX')
     }
 
 class DataOverview(Overview):
@@ -91,8 +92,8 @@ class DataOverview(Overview):
         'unit': 'MWh'
       },
       'time': {
-        'day_low': self.getDataRange(self.times['yesterday'], self.times['today']).values('saved_time').order_by('value_sum').first(),
-        'day_high': self.getDataRange(self.times['yesterday'], self.times['today']).values('saved_time').order_by('-value_sum').first(),
+        'day_low': self.getDataRange(self.times['yesterday'], self.times['today'], 'IM').values('saved_time').order_by('value_sum').first(),
+        'day_high': self.getDataRange(self.times['yesterday'], self.times['today'], 'IM').values('saved_time').order_by('-value_sum').first(),
       },
       'average': {
         'current': self.getAverageConsumption(self.times['today']),
