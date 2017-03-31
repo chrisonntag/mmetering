@@ -396,8 +396,8 @@
             console.log("Made ajax request")
 
             vals = [];
-            for(var i=0;i<data.length;i++) {
-                vals.push([gd(""+ data[i].saved_time +""), data[i].value_sum]);
+            for(var i=0;i<data.length - 1;i++) {
+                vals.push([gd(""+ data[i].saved_time +""), data[i+1].value_sum - data[i].value_sum]);
             }
 
             plot.setData([vals]);
