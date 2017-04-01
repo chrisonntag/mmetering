@@ -48,17 +48,6 @@ class Meter(models.Model):
             (self.end_datetime <= datetime.datetime.today())):
             error_dict['end_datetime'] = ValidationError('Die Endzeit darf nicht in der Vergangenheit liegen.')
         """
-
-        # Check if devices with specified address are accessable
-        if self.active is True:
-            try:
-                # see if we can get the baud rate from the device
-                instrument = minimalmodbus.Instrument('/dev/ttyUSB0', self.addresse)
-                baud = instrument.read_float(int('0x1C', 16), functioncode=3, numberOfRegisters=2)
-            except OSError:
-                error_dict['active'] =  ValidationError(
-                    'Zu dem Zähler mit der Adresse %d kann keine Verbindung aufgebaut werden' % self.addresse)
-
         if error_dict:
             raise ValidationError(error_dict)
 
