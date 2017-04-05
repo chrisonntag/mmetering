@@ -23,7 +23,6 @@ class Overview:
 
     self.flats = Flat.objects.all()
 
-
   def parseDate(self, string):
     """Converts Datestring(MM/DD/YYYY) into date object."""
     try:
@@ -103,10 +102,10 @@ class DataOverview(Overview):
       'activities': Activities.objects.all().order_by('-timestamp')[:6]
     }
 
-class CSVResponse:
-  def getData(self):
+class DownloadOverview(Overview):
+  def getData(self, until):
     total_splitted = MeterData.objects.all() \
-      .filter(meter__flat__modus__exact='IM', saved_time__lt=datetime.today()) \
+      .filter(meter__flat__modus__exact='IM', saved_time__lt=until) \
       .values_list('meter_id', 'saved_time', 'value')
 
     total = []

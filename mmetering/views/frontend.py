@@ -6,7 +6,7 @@ from django.views import View
 from django.views.generic import TemplateView
 from django.contrib.auth import authenticate, login, logout
 from mmetering.models import Activities
-from mmetering.summaries import DataOverview, CSVResponse
+from mmetering.summaries import DataOverview, DownloadOverview
 from django.http import HttpResponse
 from datetime import datetime
 
@@ -24,23 +24,20 @@ class DownloadView(TemplateView):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="mmetering%s.csv"' % str(datetime.today())
 
-    data = CSVResponse().getData()
+    data = DownloadOverview().getData(request)
 
     writer = csv.writer(response)
     writer.writerow(['Zaehlernummer', 'Uhrzeit', 'Wert'])
     for i in range(0, len(data)):
       writer.writerow(data[i])
 
-    text = "Der Benutzer %s hat eine Zusammenfassung der " \
-           "Verbrauchsdaten bis zum %s heruntergeladen" % (request.user.username, datetime.today())
-    activity = Activities(title="CSV-Datei heruntergeladen", text=text)
-    activity.save()
+    self.saveActivity("CSV")
 
     return response
 
   def getXLS(self, request):
     output = io.BytesIO()
-    data = CSVResponse().getData()
+    data = DownloadOverview().getData(request)
 
     workbook = xlsxwriter.Workbook(output, {'in_memory': True})
     worksheet = workbook.add_worksheet()
@@ -67,19 +64,22 @@ class DownloadView(TemplateView):
                             content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     response['Content-Disposition'] = 'attachment; filename="mmetering%s.xlsx"' % str(datetime.today())
 
-    text = "Der Benutzer %s hat eine Zusammenfassung der " \
-           "Verbrauchsdaten bis zum %s heruntergeladen" % (request.user.username, datetime.today())
-    activity = Activities(title = "Excel-Datei heruntergeladen", text = text)
-    activity.save()
+    self.saveActivity("Excel")
 
     return response
+
+  def saveActivity(self, file_ending):
+    text = "Der Benutzer %s hat eine Zusammenfassung der " \
+           "Verbrauchsdaten bis zum %s heruntergeladen" % (request.user.username, datetime.today())
+    activity = Activities(title="%s-Datei heruntergeladen" % file_ending, text=text)
+    activity.save()
 
   def get(self, request, *args, **kwargs):
     format = request.GET.get('format');
     if format == 'csv':
-      return self.getCSV(request)
+      return self.getCSV(request, date)
     elif format == 'xls':
-      return self.getXLS(request)
+      return self.getXLS(request, date)
     else:
       return render(request, 'mmetering/download.html', {})
 
