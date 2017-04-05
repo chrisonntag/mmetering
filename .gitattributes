@@ -1,2 +1,2 @@
-mmetering/static* linguist-vendored
+mmetering/static/* linguist-vendored
 docs/* linguist-documentation
