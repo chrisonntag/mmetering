@@ -31,23 +31,36 @@
                 <div class="clearfix"></div>
               </div>
               <div class="x_content">
-                <p>Bitte w&auml;hlen sie die entsprechende Datei aus:</p>
-                <ul class="nav nav-pills" role="tablist">
-                    <li role="presentation" class="dropdown">
-                      <a id="drop4" href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" role="button" aria-expanded="false">
-                          Ausw&auml;hlen
-                          <span class="caret"></span>
-                      </a>
-                      <ul id="menu" class="dropdown-menu animated fadeInDown download-menu" role="menu">
-                        <li role="presentation"><a role="menuitem" tabindex="-1" data-format="csv" href="#">Als *.csv herunterladen</a>
-                        </li>
-                        <li role="presentation"><a role="menuitem" tabindex="-1" data-format="xls" href="#">Als *.xls herunterladen</a>
-                        </li>
-                        <li role="presentation" class="divider"></li>
-                        <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Einstellungen</a>
-                      </ul>
-                    </li>
-                </ul>
+                <p>Bitte w&auml;hlen Sie das entsprechende Dateiformat und Datum aus:</p>
+                <div class="col-md-8">
+                    <div class="col-md-3">
+                        <div id="reportrange" class="pull-right" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc">
+                          <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>
+                          <span></span> <b class="caret"></b>
+                          <input type="hidden" class="hidden" id="timerange_start" name="start" />
+                          <input type="hidden" id="timerange_end" name="end" />
+                        </div>
+                    </div>
+
+                    <div class="col-md-5">
+                        <ul class="nav nav-pills" role="tablist">
+                            <li role="presentation" class="dropdown">
+                              <a id="drop4" href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" role="button" aria-expanded="false">
+                                  Ausw&auml;hlen
+                                  <span class="caret"></span>
+                              </a>
+                              <ul id="menu" class="dropdown-menu animated fadeInDown download-menu" role="menu">
+                                <li role="presentation"><a role="menuitem" tabindex="-1" data-format="csv" href="#">Als *.csv herunterladen</a>
+                                </li>
+                                <li role="presentation"><a role="menuitem" tabindex="-1" data-format="xls" href="#">Als *.xls herunterladen</a>
+                                </li>
+                                <li role="presentation" class="divider"></li>
+                                <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Einstellungen</a>
+                              </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
 
                 <div class="download_logger hidden">
                     <p>
@@ -80,7 +93,9 @@
 
             $('.download-menu > li > a').click(function() {
                 $('.download_logger').removeClass('hidden');
-                var url = '/download?format=' + $(this).attr('data-format');
+                var start = $("#timerange_start").val();
+                var end = $("#timerange_end").val();
+                var url = '/download?format=' + $(this).attr('data-format') + '&start='+start+'&end='+end;
 
                 $("#download-iframe").remove()
                 var iframe = '<iframe style="display:none;" id="download-iframe" src="' + url + '">';
@@ -89,5 +104,33 @@
             });
 
         });
+    </script>
+
+    <script>
+    moment.locale('de');
+      $(document).ready(function() {
+
+        var cb = function(start, end, label) {
+          //console.log(start.subtract(1, 'days').toISOString(), end.add(1, 'days').toISOString(), label);
+          $('#reportrange span').html(end.format('D MMMM, YYYY'));
+          $('#reportrange #timerange_start').attr('value', start.subtract(1, 'days').format('l'));
+          $('#reportrange #timerange_end').attr('value', end.add(1, 'days').format('l'));
+        };
+
+        date_options = {
+            "singleDatePicker": true,
+            "showCustomRangeLabel": false,
+            "startDate": moment(),
+            "endDate": moment(),
+            "opens": "left",
+            "buttonClasses": "btn btn-default",
+            "applyClass": "btn-small btn-primary",
+            "cancelClass": "btn-small"
+        };
+
+        $('#reportrange span').html("Datum ausw&auml;hlen");
+        $('#reportrange').daterangepicker(date_options, cb);
+
+      });
     </script>
 {% endblock %}

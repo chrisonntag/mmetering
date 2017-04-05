@@ -6,7 +6,7 @@ from django.views import View
 from django.views.generic import TemplateView
 from django.contrib.auth import authenticate, login, logout
 from mmetering.models import Activities
-from mmetering.summaries import DataOverview, CSVResponse
+from mmetering.summaries import DataOverview, DownloadOverview
 from django.http import HttpResponse
 from datetime import datetime
 
@@ -24,23 +24,20 @@ class DownloadView(TemplateView):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="mmetering%s.csv"' % str(datetime.today())
 
-    data = CSVResponse().getData()
+    data = DownloadOverview(request.GET).getData()
 
     writer = csv.writer(response)
-    writer.writerow(['Zaehlernummer', 'Uhrzeit', 'Wert'])
+    writer.writerow(['SN', 'Bezug', 'Zaehlerstand', 'Uhrzeit'])
     for i in range(0, len(data)):
       writer.writerow(data[i])
 
-    text = "Der Benutzer %s hat eine Zusammenfassung der " \
-           "Verbrauchsdaten bis zum %s heruntergeladen" % (request.user.username, datetime.today())
-    activity = Activities(title="CSV-Datei heruntergeladen", text=text)
-    activity.save()
+    self.saveActivity(request, "CSV")
 
     return response
 
   def getXLS(self, request):
     output = io.BytesIO()
-    data = CSVResponse().getData()
+    data = DownloadOverview(request.GET).getData()
 
     workbook = xlsxwriter.Workbook(output, {'in_memory': True})
     worksheet = workbook.add_worksheet()
@@ -48,17 +45,21 @@ class DownloadView(TemplateView):
     bold = workbook.add_format({'bold': True})
     time = workbook.add_format({'num_format': 'dd.mm.yy hh:mm'})
     # Widen the first column to make the text clearer.
-    worksheet.set_column('A:A', 15)
-    worksheet.set_column('B:B', 15)
-    worksheet.write('A1', 'Zaehlernummer', bold)
-    worksheet.write('B1', 'Uhrzeit', bold)
-    worksheet.write('C1', 'Wert', bold)
+    worksheet.set_column('B:B', 12)
+    worksheet.set_column('C:C', 15)
+    worksheet.set_column('D:D', 12)
+    worksheet.set_column('E:E', 12)
+    worksheet.write('B2', 'SN', bold)
+    worksheet.write('C2', 'Bezug', bold)
+    worksheet.write('D2', 'Zaehlerstand', bold)
+    worksheet.write('E2', 'Uhrzeit', bold)
 
-    for i in range(1, len(data)):
+    for i in range(0, len(data)):
       #worksheet.write(zeile, spalte, wert)
-      worksheet.write(i, 0, data[i][0])
-      worksheet.write(i, 1, data[i][1], time)
-      worksheet.write(i, 2, data[i][2])
+      worksheet.write(i+2, 1, data[i][0])
+      worksheet.write(i+2, 2, data[i][1])
+      worksheet.write(i+2, 3, data[i][2])
+      worksheet.write(i+2, 4, data[i][3], time)
 
     workbook.close()
     output.seek(0)
@@ -67,12 +68,15 @@ class DownloadView(TemplateView):
                             content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     response['Content-Disposition'] = 'attachment; filename="mmetering%s.xlsx"' % str(datetime.today())
 
-    text = "Der Benutzer %s hat eine Zusammenfassung der " \
-           "Verbrauchsdaten bis zum %s heruntergeladen" % (request.user.username, datetime.today())
-    activity = Activities(title = "Excel-Datei heruntergeladen", text = text)
-    activity.save()
+    self.saveActivity(request, "Excel")
 
     return response
+
+  def saveActivity(self, request, file_ending):
+    text = "Der Benutzer %s hat eine Zusammenfassung der " \
+           "Verbrauchsdaten heruntergeladen" % (request.user.username)
+    activity = Activities(title="%s-Datei heruntergeladen" % file_ending, text=text)
+    activity.save()
 
   def get(self, request, *args, **kwargs):
     format = request.GET.get('format');

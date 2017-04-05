@@ -18,19 +18,19 @@ class Overview:
     }
     start = [self.parseDate(self._filters['start']) if 'start' in self._filters else self.times['now-24']]
     end = [self.parseDate(self._filters['end']) if 'end' in self._filters else self.times['now']]
+    self._end = end
     self.timerange = start + end
     # TODO check for start==end
 
     self.flats = Flat.objects.all()
 
-
   def parseDate(self, string):
-    """Converts Datestring(MM/DD/YYYY) into date object."""
+    """Converts Datestring(DD.MM.YYYY) into date object."""
     try:
       raw = list(map(int, string.split('.')))
       return datetime(raw[2], raw[1], raw[0], 0, 0, 0, 0)
     except:
-      logging.error("Expected string format is MM/DD/YYYY. I got %s" % string)
+      logging.error("Expected string format is DD.MM.YYYY. I got %s" % string)
 
   def is_empty(structure):
     if structure:
@@ -103,11 +103,13 @@ class DataOverview(Overview):
       'activities': Activities.objects.all().order_by('-timestamp')[:6]
     }
 
-class CSVResponse:
+class DownloadOverview(Overview):
   def getData(self):
-    total_splitted = MeterData.objects.all() \
-      .filter(meter__flat__modus__exact='IM', saved_time__lt=datetime.today()) \
-      .values_list('meter_id', 'saved_time', 'value')
+    num_of_meters = Meter.objects.filter(flat__modus__exact='IM', active=True).count()
+    total_splitted = MeterData.objects \
+      .filter(meter__flat__modus__exact='IM', meter__active=True, saved_time__lte=self._end[0]) \
+      .values_list('meter__seriennummer', 'meter__flat__name', 'value', 'saved_time') \
+      .order_by('-saved_time')[num_of_meters:num_of_meters*2]
 
     total = []
     for flat in total_splitted:
