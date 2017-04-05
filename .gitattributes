@@ -1,2 +1,3 @@
 mmetering/static/* linguist-vendored
 docs/* linguist-documentation
+templates/* linguist-language=HTML+Django
