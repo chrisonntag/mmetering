@@ -1,14 +1,8 @@
-import csv
-import xlsxwriter
-import io
-from django.shortcuts import render, render_to_response, redirect
-from django.views import View
+from django.shortcuts import render
 from django.views.generic import TemplateView
-from django.contrib.auth import authenticate, login, logout
 from mmetering.models import Activities
-from mmetering.summaries import DataOverview, DownloadOverview
-from django.http import HttpResponse
-from datetime import datetime
+from mmetering.summaries import DataOverview
+from mmetering.filegenerator import CSV, XLS
 
 from django.views.generic.edit import FormView
 from mmetering.forms import ContactForm
@@ -19,59 +13,6 @@ class IndexView(TemplateView):
     return render(request, 'mmetering/home.html', data.to_dict())
 
 class DownloadView(TemplateView):
-  def getCSV(self, request):
-    # Create the HttpResponse object with the appropriate CSV header.
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="mmetering%s.csv"' % str(datetime.today())
-
-    data = DownloadOverview(request.GET).getData()
-
-    writer = csv.writer(response)
-    writer.writerow(['SN', 'Bezug', 'Zaehlerstand', 'Uhrzeit'])
-    for i in range(0, len(data)):
-      writer.writerow(data[i])
-
-    self.saveActivity(request, "CSV")
-
-    return response
-
-  def getXLS(self, request):
-    output = io.BytesIO()
-    data = DownloadOverview(request.GET).getData()
-
-    workbook = xlsxwriter.Workbook(output, {'in_memory': True})
-    worksheet = workbook.add_worksheet()
-
-    bold = workbook.add_format({'bold': True})
-    time = workbook.add_format({'num_format': 'dd.mm.yy hh:mm'})
-    # Widen the first column to make the text clearer.
-    worksheet.set_column('B:B', 12)
-    worksheet.set_column('C:C', 15)
-    worksheet.set_column('D:D', 12)
-    worksheet.set_column('E:E', 12)
-    worksheet.write('B2', 'SN', bold)
-    worksheet.write('C2', 'Bezug', bold)
-    worksheet.write('D2', 'Zaehlerstand', bold)
-    worksheet.write('E2', 'Uhrzeit', bold)
-
-    for i in range(0, len(data)):
-      #worksheet.write(zeile, spalte, wert)
-      worksheet.write(i+2, 1, data[i][0])
-      worksheet.write(i+2, 2, data[i][1])
-      worksheet.write(i+2, 3, data[i][2])
-      worksheet.write(i+2, 4, data[i][3], time)
-
-    workbook.close()
-    output.seek(0)
-
-    response = HttpResponse(output.read(),
-                            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-    response['Content-Disposition'] = 'attachment; filename="mmetering%s.xlsx"' % str(datetime.today())
-
-    self.saveActivity(request, "Excel")
-
-    return response
-
   def saveActivity(self, request, file_ending):
     text = "Der Benutzer %s hat eine Zusammenfassung der " \
            "Verbrauchsdaten heruntergeladen" % (request.user.username)
@@ -79,11 +20,15 @@ class DownloadView(TemplateView):
     activity.save()
 
   def get(self, request, *args, **kwargs):
-    format = request.GET.get('format');
+    format = request.GET.get('format')
     if format == 'csv':
-      return self.getCSV(request)
+      self.saveActivity(request, "CSV")
+      csv_file = CSV(request)
+      return csv_file.getFile()
     elif format == 'xls':
-      return self.getXLS(request)
+      self.saveActivity(request, "Excel")
+      xls_file = XLS(request)
+      return xls_file.getFile()
     else:
       return render(request, 'mmetering/download.html', {})
 

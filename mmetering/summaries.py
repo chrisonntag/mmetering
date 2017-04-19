@@ -16,10 +16,9 @@ class Overview:
       'current_month': (date.today() - timedelta(days=30), date.today()),
       'last_month': (date.today() - timedelta(days=60), date.today() - timedelta(days=30))
     }
-    start = [self.parseDate(self._filters['start']) if 'start' in self._filters else self.times['now-24']]
-    end = [self.parseDate(self._filters['end']) if 'end' in self._filters else self.times['now']]
-    self._end = end
-    self.timerange = start + end
+    self.start = [self.parseDate(self._filters['start']) if 'start' in self._filters else self.times['now-24']]
+    self.end = [self.parseDate(self._filters['end']) if 'end' in self._filters else self.times['now']]
+    self.timerange = self.start + self.end
     # TODO check for start==end
 
     self.flats = Flat.objects.all()
@@ -107,7 +106,7 @@ class DownloadOverview(Overview):
   def getData(self):
     num_of_meters = Meter.objects.filter(flat__modus__exact='IM', active=True).count()
     total_splitted = MeterData.objects \
-      .filter(meter__flat__modus__exact='IM', meter__active=True, saved_time__lte=self._end[0]) \
+      .filter(meter__flat__modus__exact='IM', meter__active=True, saved_time__lte=self.end[0]) \
       .values_list('meter__seriennummer', 'meter__flat__name', 'value', 'saved_time') \
       .order_by('-saved_time')[num_of_meters:num_of_meters*2]
 
