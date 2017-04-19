@@ -1,3 +1,9 @@
+[object]
+name = <objectname>
+street = <yourstreet>
+zip = <yourzipcode>
+city = <yourcity>
+
 [client]
 database = <database>
 host = <your_host>

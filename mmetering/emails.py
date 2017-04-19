@@ -1,5 +1,6 @@
 import os
 import getpass
+import configparser
 from django.conf import settings
 from mmetering.filegenerator import XLS
 from datetime import datetime
@@ -24,9 +25,19 @@ def send_contact_email(name, email, message):
 
 
 def send_attachment_email():
+    config = configparser.RawConfigParser()
+    config.read(os.path.join(settings.BASE_DIR, 'my.cnf'))
+
+    c = Context({
+        'name': config.get('object', 'name'),
+        'street': config.get('object', 'street'),
+        'zip': config.get('object', 'zip'),
+        'city': config.get('object', 'city')
+    })
+
     email_subject = render_to_string(
-        'mmetering/email/email_subject.txt').replace('\n', '')
-    email_body = render_to_string('mmetering/email/email_body.txt')
+        'mmetering/email/email_meterdata_subject.txt', c).replace('\n', '')
+    email_body = render_to_string('mmetering/email/email_meterdata_body.txt', c)
 
     email = EmailMessage(
         email_subject, email_body, settings.DEFAULT_FROM_EMAIL,

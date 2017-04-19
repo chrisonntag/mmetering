@@ -1,1 +1,1 @@
-[MMetering] Zählerstände
+[MMetering] Zählerstände {{name}}

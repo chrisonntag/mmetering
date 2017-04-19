@@ -1,4 +1,11 @@
-Im Anhang die Datei mit den aktuellen Zählerständen.
+Dies ist eine automatisch generierte Nachricht, bitte antworten Sie nicht an diese E-Mail-Adresse.
+Sollten Sie weitere Fragen zur Erfassung der Daten oder einen Fehler gefunden haben,
+wenden Sie sich bitte an den Systemadministrator.
+
+Im Anhang finden Sie die Datei mit den aktuellen Zählerständen zur Adresse:
+
+{{street}}
+{{zip}} {{city}}
 
 ------
-Gesendet von MMetering
+MMetering
