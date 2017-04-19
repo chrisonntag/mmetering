@@ -55,10 +55,10 @@ class XLS(File):
 
     for i in range(0, len(data)):
       # worksheet.write(zeile, spalte, wert)
-      worksheet.write(i+2, 1, data[i][0])
-      worksheet.write(i+2, 2, data[i][1])
-      worksheet.write(i+2, 3, data[i][2])
-      worksheet.write(i+2, 4, data[i][3], time)
+      worksheet.write(i+3, 1, data[i][0])
+      worksheet.write(i+3, 2, data[i][1])
+      worksheet.write(i+3, 3, data[i][2])
+      worksheet.write(i+3, 4, data[i][3], time)
 
     workbook.close()
     output.seek(0)

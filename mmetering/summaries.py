@@ -104,11 +104,11 @@ class DataOverview(Overview):
 
 class DownloadOverview(Overview):
   def getData(self):
-    num_of_meters = Meter.objects.filter(flat__modus__exact='IM', active=True).count()
-    total_splitted = MeterData.objects \
-      .filter(meter__flat__modus__exact='IM', meter__active=True, saved_time__lte=self.end[0]) \
-      .values_list('meter__seriennummer', 'meter__flat__name', 'value', 'saved_time') \
-      .order_by('-saved_time')[num_of_meters:num_of_meters*2]
+    num_of_meters = Meter.objects.filter(active=True).count()
+    total_splitted = MeterData.objects\
+        .filter(meter__active=True, saved_time__lte=self.end[0])\
+        .values_list('meter__seriennummer', 'meter__flat__name', 'value', 'saved_time')\
+        .order_by('-saved_time')[num_of_meters:num_of_meters*2]
 
     total = []
     for flat in total_splitted:
