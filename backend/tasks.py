@@ -1,5 +1,5 @@
-from celery.task.schedules import crontab
-from celery.decorators import periodic_task
+from celery.schedules import crontab
+from celery.task import periodic_task
 from datetime import datetime, timedelta
 from celery.utils.log import get_task_logger
 
@@ -23,7 +23,7 @@ def save_meter_data_task():
   logger.info(saved_meters)
 
 @periodic_task(
-    run_every=(timedelta(seconds=6)), #crontab(minute="*/15") timedelta(seconds=6)#
+    run_every=(crontab(0, 0, day_of_month='2')),
     name="send_meter_data_email_task",
     ignore_result=True
 )
