@@ -1,3 +1,5 @@
+import os
+import getpass
 from django.conf import settings
 from mmetering.filegenerator import XLS
 from datetime import datetime
@@ -15,7 +17,7 @@ def send_contact_email(name, email, message):
 
     email = EmailMessage(
         email_subject, email_body, email,
-        [settings.DEFAULT_FROM_EMAIL], [],
+        [settings.DEFAULT_TO_EMAIL], [],
         headers={'Reply-To': email}
     )
     return email.send(fail_silently=False)
@@ -27,22 +29,27 @@ def send_attachment_email():
     email_body = render_to_string('mmetering/email/email_body.txt')
 
     email = EmailMessage(
-        email_subject, email_body, 'noreply@mmetering.chrisonntag.com',
-        [settings.DEFAULT_FROM_EMAIL], []
+        email_subject, email_body, settings.DEFAULT_FROM_EMAIL,
+        [settings.DEFAULT_TO_EMAIL], []
     )
 
     # get the excel file until today as a HttpResponse object
     xls = XLS(None)
     httpresponse = xls.getFileUntil(datetime.today())
 
+    user = getpass.getuser()
+    savedir = "/home/%s/mmetering-data/" % user
+    if not os.path.exists(savedir):
+        os.makedirs(savedir)
+
     # save the content of the response as a file
     filename = "mmetering%s.xlsx" % str(datetime.today())
-    with open("/Users/christoph/Desktop/" + filename, 'wb') as excel_file:
+    with open(savedir + filename, 'wb') as excel_file:
         excel_file.write(httpresponse.content)
         excel_file.close()
 
     # attach file to the email
-    with open("/Users/christoph/Desktop/" + filename, 'rb') as excel_file:
+    with open(savedir + filename, 'rb') as excel_file:
         email.attach(excel_file.name, excel_file.read(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
         excel_file.close()
 
