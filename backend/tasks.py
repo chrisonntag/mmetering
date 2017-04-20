@@ -1,6 +1,5 @@
 from celery.schedules import crontab
 from celery.task import periodic_task
-from datetime import datetime, timedelta
 from celery.utils.log import get_task_logger
 
 from backend.serial import save_meter_data

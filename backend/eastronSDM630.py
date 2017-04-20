@@ -18,7 +18,7 @@ class EastronSDM630(minimalmodbus.Instrument):
     self.end = end
     self.modus = modus
 
-    if (settings.PRODUCTION):
+    if settings.PRODUCTION:
       # port name, slave address (in decimal)
       minimalmodbus.Instrument.__init__(self, '/dev/ttyUSB0', address)
       self.serial.timeout = 6.0  # sec
@@ -57,7 +57,7 @@ class EastronSDM630(minimalmodbus.Instrument):
         print("Exception: ", exc_info=True, file=sys.stderr)
 
   def getValue(self):
-    if (settings.PRODUCTION):
+    if settings.PRODUCTION:
       if self.modus is 'EX':
         return self.getInputRegister('0x4A', 2)
       else:

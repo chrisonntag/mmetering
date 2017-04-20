@@ -1,7 +1,12 @@
-import csv, xlsxwriter, io
-from datetime import datetime, date, timedelta
+import csv
+import io
+import xlsxwriter
+from datetime import datetime, timedelta
+
 from django.http import HttpResponse, QueryDict
+
 from mmetering.summaries import DownloadOverview
+
 
 class DummyRequest:
   GET = None

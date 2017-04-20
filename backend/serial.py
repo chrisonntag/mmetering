@@ -1,7 +1,9 @@
 import sys
+from datetime import datetime
+
 from backend.eastronSDM630 import EastronSDM630
-from datetime import datetime, timedelta
-from mmetering.models import Meter, MeterData, Activities
+from mmetering.models import Meter, MeterData
+
 
 def save_meter_data():
   """
@@ -41,7 +43,7 @@ def get_meter_objects(modus):
 def updateStartDate(id):
   """
   Updates a meter models startdate field
-  :param id:
+  :param id: a meters unique id
   """
   meter = Meter.objects.get(pk=id)
   meter.start_datetime = datetime.today()
@@ -50,9 +52,9 @@ def updateStartDate(id):
 def saveValue(id, cur_datetime, val):
   """
   Saves a given value and datetime in a django model
-  :param id:
-  :param datetime:
-  :param val:
+  :param id: a meters unique id
+  :param cur_datetime: current datetime (datetime.datetime object)
+  :param val: the meter reading
   """
   value = MeterData(meter_id=id, saved_time=cur_datetime, value=val)
   value.save()
@@ -63,7 +65,7 @@ def loadData(objects):
   Loops through a EastronSDM630 object list, checks wether a startdate
   has already been set or not and requests the current Import/Export
   by calling EastronSDM630s getValue() method
-  :param objects:
+  :param objects: list of instances of the EastronSDM630 class
   """
   for meter in objects:
     if meter.getStart() is None:

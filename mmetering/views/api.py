@@ -4,10 +4,7 @@ from rest_framework.views import APIView
 
 from mmetering.summaries import LoadProfileOverview, DataOverview
 
-class APIClass(APIView):
-  test = "hallo"
-
-class APILoadProfileView(APIClass):
+class APILoadProfileView(APIView):
   """Powers loadprofile dashboard widget."""
   parser_classes = (JSONParser,)
 
@@ -15,7 +12,7 @@ class APILoadProfileView(APIClass):
     loadprofile = LoadProfileOverview(request.GET)
     return Response(loadprofile.to_dict())
 
-class APIDataOverviewView(APIClass):
+class APIDataOverviewView(APIView):
   parser_classes = (JSONParser,)
 
   def get(self, request, format=None):

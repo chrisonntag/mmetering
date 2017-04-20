@@ -15,7 +15,7 @@ class IndexView(TemplateView):
 class DownloadView(TemplateView):
   def saveActivity(self, request, file_ending):
     text = "Der Benutzer %s hat eine Zusammenfassung der " \
-           "Verbrauchsdaten heruntergeladen" % (request.user.username)
+           "Verbrauchsdaten heruntergeladen" % request.user.username
     activity = Activities(title="%s-Datei heruntergeladen" % file_ending, text=text)
     activity.save()
 

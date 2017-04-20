@@ -1,7 +1,10 @@
 import logging
 from datetime import datetime, timedelta, date
-from django.db.models import Max, Sum, Count, F, Avg, Q
+
+from django.db.models import Sum, Count
+
 from mmetering.models import Flat, Meter, MeterData, Activities
+
 
 class Overview:
   def __init__(self, filters):
@@ -28,10 +31,10 @@ class Overview:
     try:
       raw = list(map(int, string.split('.')))
       return datetime(raw[2], raw[1], raw[0], 0, 0, 0, 0)
-    except:
+    except Exception:
       logging.error("Expected string format is DD.MM.YYYY. I got %s" % string)
 
-  def is_empty(structure):
+  def is_empty(self, structure):
     if structure:
       return False
     else:

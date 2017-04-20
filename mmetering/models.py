@@ -1,9 +1,6 @@
-import datetime
-import minimalmodbus
-
-from django.db import models
-from django.utils import timezone
 from django.core.exceptions import ValidationError
+from django.db import models
+
 
 class Flat(models.Model):
     MODE_TYPES = (

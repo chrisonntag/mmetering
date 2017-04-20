@@ -4,6 +4,7 @@
 {% block title %}MMetering | Download{% endblock %}
 
 {% block headcss %}
+    <!--suppress ALL -->
     <link href="{% static 'mmetering/css/contact.css' %}" type="text/css">
 {% endblock %}
 
@@ -51,7 +52,7 @@
               <div class="form-group">
                 <div class="col-md-6 col-md-offset-3">
                   <button type="submit" class="btn btn-primary">Abbrechen</button>
-                  <input id="send" type="submit" class="btn btn-success" value="Senden"></input>
+                  <input id="send" type="submit" class="btn btn-success" value="Senden" />
                   {{ form.submit }}
                 </div>
               </div>

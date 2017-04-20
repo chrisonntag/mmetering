@@ -97,7 +97,7 @@
                 var end = $("#timerange_end").val();
                 var url = '/download?format=' + $(this).attr('data-format') + '&start='+start+'&end='+end;
 
-                $("#download-iframe").remove()
+                $("#download-iframe").remove();
                 var iframe = '<iframe style="display:none;" id="download-iframe" src="' + url + '">';
                 $(iframe).appendTo('body');
                 timer = setInterval(checkIFrame(), 2000);

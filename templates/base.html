@@ -61,7 +61,7 @@
               <a data-toggle="tooltip" href="{% url 'admin:index' %}" data-placement="top" title="Settings">
                 <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
               </a>
-              <a data-toggle="tooltip" onClick="javascript:requestFullScreen(document.body)" data-placement="top" title="FullScreen">
+              <a data-toggle="tooltip" onClick="requestFullScreen(document.body)" data-placement="top" title="FullScreen">
                 <span class="glyphicon glyphicon-fullscreen" aria-hidden="true"></span>
               </a>
               <a data-toggle="tooltip" data-placement="top" title="Lock">
@@ -135,6 +135,13 @@
     <script src="{% static 'mmetering/custom/js/custom.min.js' %}"></script>
 
     <script>
+        /**
+         * @param element                               Document element to be shown fullsized
+         * @param element.requestFullScreen             Function on this element
+         * @param element.webkitRequestFullScreen       Webkit-specific function on this element
+         * @param element.mozRequestFullScreen          Moz-specific function on this element
+         * @param element.msRequestFullScreen           MS-specific function on this element
+         */
         function requestFullScreen(element) {
             // Supports most browsers and their versions.
             var requestMethod = element.requestFullScreen || element.webkitRequestFullScreen || element.mozRequestFullScreen || element.msRequestFullScreen;

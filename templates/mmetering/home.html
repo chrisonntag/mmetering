@@ -238,27 +238,6 @@
     <!-- jVectorMap -->
     <script src="{% static 'mmetering/js/maps/jquery-jvectormap-2.0.3.min.js' %}"></script>
 
-    <!-- Skycons -->
-    <script>
-      $(document).ready(function() {
-        var icons = new Skycons({
-            "color": "#73879C"
-          }),
-          list = [
-            "clear-day", "clear-night", "partly-cloudy-day",
-            "partly-cloudy-night", "cloudy", "rain", "sleet", "snow", "wind",
-            "fog"
-          ],
-          i;
-
-        for (i = list.length; i--;)
-          icons.set(list[i], list[i]);
-
-        icons.play();
-      });
-    </script>
-    <!-- /Skycons -->
-
     <!-- bootstrap-daterangepicker -->
     <script>
     moment.locale('de');
@@ -391,12 +370,13 @@
         plot = $.plot($("#canvas_dahs"), [[]], options);
 
         $("#timerange_form").submit(function(e) {
-            e.preventDefault()
+            e.preventDefault();
             var start = $("#timerange_start").val();
             var end = $("#timerange_end").val();
             ajaxLoadProfile('/api/loadprofile?format=json&start='+start+'&end='+end+'')
-        })
+        });
 
+        //noinspection PointlessArithmeticExpressionJS
         var interval = 1000 * 1 * 60;
         setInterval(ajaxLoadProfile('/api/loadprofile?format=json'), interval);
         function ajaxLoadProfile(_url) {
@@ -407,16 +387,21 @@
                 success: loadLoadProfile
             });
         }
-        ajaxLoadProfile('/api/loadprofile?format=json')
+        ajaxLoadProfile('/api/loadprofile?format=json');
 
         function gd(isoformat) {
           return new Date(isoformat).getTime();
         }
 
+        /**
+         * @param response
+         * @param response.consumption
+         * @param response.supply
+         */
         function loadLoadProfile(response) {
             var consumption = response.consumption;
             var supply = response.supply;
-            console.log("Made ajax request")
+            console.log("Made ajax request");
 
             consumption_values = [];
             for(var i=0;i<consumption.length - 1;i++) {
