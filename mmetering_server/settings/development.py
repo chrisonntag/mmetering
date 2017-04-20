@@ -31,12 +31,12 @@ DATABASES = {
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 # noinspection PyUnresolvedReferences
 STATICFILES_DIRS = (
-  os.path.join(BASE_DIR, "static"),
+    os.path.join(BASE_DIR, "static"),
 )
 # STATIC_ROOT = '/static/'
 STATIC_URL = '/static/'
 
-#EMAIL SETTINGS
+# EMAIL SETTINGS
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = config.get('mail', 'host')
 EMAIL_HOST_USER = config.get('mail', 'user')

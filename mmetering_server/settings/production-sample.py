@@ -14,7 +14,7 @@ SECRET_KEY = config.get('variables', 'secretkey')
 DEBUG = True
 
 ALLOWED_HOSTS = [
-  'domain.example.com',
+    'domain.example.com',
 ]
 
 ADMINS = (
@@ -40,7 +40,7 @@ DATABASES = {
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATIC_URL = '/static/'
 
-#EMAIL SETTINGS
+# EMAIL SETTINGS
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = config.get('mail', 'host')
 EMAIL_HOST_USER = config.get('mail', 'user')

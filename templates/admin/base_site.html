@@ -5,13 +5,12 @@
 
 {% block extrastyle %}
     {{ block.super }}
-    <link rel="stylesheet" type="text/css" href="{% static "mmetering/custom/css/custom_admin.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "mmetering/custom/css/custom_admin.css" %}"/>
 {% endblock %}
 
 {% block branding %}
-<h1 id="site-name"><a href="{% url 'admin:index' %}">MMetering</a></h1>
+    <h1 id="site-name"><a href="{% url 'admin:index' %}">MMetering</a></h1>
 {% endblock %}
-
 
 
 {% block nav-global %}{% endblock %}

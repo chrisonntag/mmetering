@@ -8,79 +8,83 @@
     <!-- iCheck -->
     <link href="{% static 'mmetering/vendors/iCheck/skins/flat/green.css' %}" rel="stylesheet">
     <!-- bootstrap-progressbar -->
-    <link href="{% static 'mmetering/vendors/bootstrap-progressbar/css/bootstrap-progressbar-3.3.4.min.css' %}" rel="stylesheet">
+    <link href="{% static 'mmetering/vendors/bootstrap-progressbar/css/bootstrap-progressbar-3.3.4.min.css' %}"
+          rel="stylesheet">
     <!-- jVectorMap -->
     <link href="{% static 'mmetering/css/maps/jquery-jvectormap-2.0.3.css' %}" rel="stylesheet"/>
 
     <style>
-    .mmetering_unit{
-      font-weight: 400
-    }
+        .mmetering_unit {
+            font-weight: 400
+        }
     </style>
 {% endblock %}
 
 {% block content %}
     <!-- page content -->
-        <div class="right_col" role="main">
-          <!-- top tiles -->
-          <div class="row tile_count">
+    <div class="right_col" role="main">
+        <!-- top tiles -->
+        <div class="row tile_count">
             <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
-              <span class="count_top"><i class="fa fa-globe"></i> Gesamtverbrauch</span>
-              <div class="count">
-                  {{ consumption.total|floatformat:2 }}<span class="mmetering_unit">{{ consumption.unit }}</span>
-              </div>
-              <span class="count_bottom">
+                <span class="count_top"><i class="fa fa-globe"></i> Gesamtverbrauch</span>
+                <div class="count">
+                    {{ consumption.total|floatformat:2 }}<span class="mmetering_unit">{{ consumption.unit }}</span>
+                </div>
+                <span class="count_bottom">
                   {% if consumption.total > consumption.total_last_week %}
-                    <i class="green"><i class="fa fa-sort-asc"></i>{{ consumption.total|as_percentage_of:consumption.total_last_week }} </i>
+                      <i class="green"><i
+                              class="fa fa-sort-asc"></i>{{ consumption.total|as_percentage_of:consumption.total_last_week }} </i>
                   {% elif consumption.total < consumption.total_last_week %}
-                    <i class="red"><i class="fa fa-sort-desc"></i>{{ consumption.total|as_percentage_of:consumption.total_last_week }} </i>
+                      <i class="red"><i
+                              class="fa fa-sort-desc"></i>{{ consumption.total|as_percentage_of:consumption.total_last_week }} </i>
                   {% endif %}
-                  letzte Woche
+                    letzte Woche
               </span>
             </div>
             <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
-              <span class="count_top"><i class="fa fa-percent"></i> Durchschnittsverbrauch</span>
-              <div class="count">{{ average.current|floatformat:0 }}<span class="mmetering_unit">{{ average.unit }}</span></div>
-              <span class="count_bottom">
+                <span class="count_top"><i class="fa fa-percent"></i> Durchschnittsverbrauch</span>
+                <div class="count">{{ average.current|floatformat:0 }}<span
+                        class="mmetering_unit">{{ average.unit }}</span></div>
+                <span class="count_bottom">
                   {% if average.current > average.last %}
-                    <i class="green"><i class="fa fa-sort-asc"></i>{{ average.current|as_percentage_of:average.last }} </i>
+                      <i class="green"><i class="fa fa-sort-asc"></i>{{ average.current|as_percentage_of:average.last }} </i>
                   {% elif average.current < average.last %}
-                    <i class="red"><i class="fa fa-sort-desc"></i>{{ average.current|as_percentage_of:average.last }} </i>
+                      <i class="red"><i class="fa fa-sort-desc"></i>{{ average.current|as_percentage_of:average.last }} </i>
                   {% endif %}
-                  seit gestern
+                    seit gestern
               </span>
             </div>
             <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
-              <span class="count_top"><i class="fa fa-clock-o"></i> Tageshoch</span>
-              <div class="count red">
-                  {% if time.day_high.saved_time %}
-                    {{ time.day_high.saved_time.time }}
-                  {% else %}
-                    00:00
-                  {% endif %}
-                  <span class="mmetering_unit"> Uhr</span></div>
+                <span class="count_top"><i class="fa fa-clock-o"></i> Tageshoch</span>
+                <div class="count red">
+                    {% if time.day_high.saved_time %}
+                        {{ time.day_high.saved_time.time }}
+                    {% else %}
+                        00:00
+                    {% endif %}
+                    <span class="mmetering_unit"> Uhr</span></div>
             </div>
             <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
-              <span class="count_top"><i class="fa fa-clock-o"></i> Tagestief</span>
-              <div class="count green">
-                  {% if time.day_low.saved_time %}
-                    {{ time.day_low.saved_time.time }}
-                  {% else %}
-                    00:00
-                  {% endif %}
-                  <span class="mmetering_unit"> Uhr</span></div>
+                <span class="count_top"><i class="fa fa-clock-o"></i> Tagestief</span>
+                <div class="count green">
+                    {% if time.day_low.saved_time %}
+                        {{ time.day_low.saved_time.time }}
+                    {% else %}
+                        00:00
+                    {% endif %}
+                    <span class="mmetering_unit"> Uhr</span></div>
             </div>
             <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
-              <span class="count_top"><i class="fa fa-home"></i> Verbraucher</span>
-              <div class="count">
-                   {% if consumers.num %}{{ consumers.num }}
-                   {% else %}0{% endif %}
-              </div>
-              <span class="count_bottom">
+                <span class="count_top"><i class="fa fa-home"></i> Verbraucher</span>
+                <div class="count">
+                    {% if consumers.num %}{{ consumers.num }}
+                    {% else %}0{% endif %}
+                </div>
+                <span class="count_bottom">
                   <i class="green">
                       <i class="fa fa-circle"></i>
                       {{ active_consumers.num }}
-                  </i> aktiv<br />
+                  </i> aktiv<br/>
                   <i class="red">
                       <i class="fa fa-circle"></i>
                       {{ consumers.num|subtract:active_consumers.num }}
@@ -88,125 +92,129 @@
               </span>
             </div>
             <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
-              <span class="count_top"><i class="fa fa-user"></i> Lieferanten</span>
-              <div class="count">
-                  {% if suppliers.num %}{{ suppliers.num }}
-                  {% else %}0{% endif %}
-              </div>
-             <span class="count_bottom">
+                <span class="count_top"><i class="fa fa-user"></i> Lieferanten</span>
+                <div class="count">
+                    {% if suppliers.num %}{{ suppliers.num }}
+                    {% else %}0{% endif %}
+                </div>
+                <span class="count_bottom">
                   <i class="green">
                       <i class="fa fa-circle"></i>
                       {{ active_suppliers.num }}
-                  </i> aktiv<br />
+                  </i> aktiv<br/>
                   <i class="red">
                       <i class="fa fa-circle"></i>
                       {{ suppliers.num|subtract:active_suppliers.num }}
                   </i> nicht aktiv
               </span>
             </div>
-          </div>
-          <!-- /top tiles -->
+        </div>
+        <!-- /top tiles -->
 
-          <div class="row">
+        <div class="row">
             <div class="col-md-12 col-sm-12 col-xs-12">
-              <div class="dashboard_graph">
+                <div class="dashboard_graph">
 
-                <div class="row x_title">
-                  <div class="col-md-6">
-                    <h3>
-                        Lastprofil
-                        <small></small>
-                    </h3>
-                  </div>
-                  <div class="col-md-6">
-                        <div id="reportrange" class="pull-right" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc">
-                          <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>
-                          <span>December 30, 2014 - January 28, 2015</span> <b class="caret"></b>
-                          <form id="timerange_form" method="get">
-                              <input type="hidden" class="hidden" id="timerange_start" name="start" />
-                              <input type="hidden" id="timerange_end" name="end" />
-                          </form>
+                    <div class="row x_title">
+                        <div class="col-md-6">
+                            <h3>
+                                Lastprofil
+                                <small></small>
+                            </h3>
                         </div>
+                        <div class="col-md-6">
+                            <div id="reportrange" class="pull-right"
+                                 style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc">
+                                <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>
+                                <span>December 30, 2014 - January 28, 2015</span> <b class="caret"></b>
+                                <form id="timerange_form" method="get">
+                                    <input type="hidden" class="hidden" id="timerange_start" name="start"/>
+                                    <input type="hidden" id="timerange_end" name="end"/>
+                                </form>
+                            </div>
 
-                  </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12 col-sm-12 col-xs-12">
+                        <div id="placeholder33" style="height: 260px; display: none" class="demo-placeholder"></div>
+                        <div style="width: 100%;">
+                            <div id="canvas_dahs" class="lastprofil" style="width: 100%; height:270px;"></div>
+                            <div id="loadprofile"></div>
+                        </div>
+                    </div>
+
+
+                    <div class="clearfix"></div>
                 </div>
-
-                <div class="col-md-12 col-sm-12 col-xs-12">
-                  <div id="placeholder33" style="height: 260px; display: none" class="demo-placeholder"></div>
-                  <div style="width: 100%;">
-                    <div id="canvas_dahs" class="lastprofil" style="width: 100%; height:270px;"></div>
-                    <div id="loadprofile"></div>
-                  </div>
-                </div>
-
-
-                <div class="clearfix"></div>
-              </div>
             </div>
 
-          </div>
-          <br />
+        </div>
+        <br/>
 
-          <div class="row">
+        <div class="row">
             <div class="col-md-4 col-sm-4 col-xs-12">
-              <div class="x_panel">
-                <div class="x_title">
-                  <h2>Aktivitäten <small>Sessions</small></h2>
-                  <ul class="nav navbar-right panel_toolbox">
-                    <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
-                    </li>
-                    <li class="dropdown">
-                      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>
-                      <ul class="dropdown-menu" role="menu">
-                        <li><a target="_blank" href="/log/print/">Drucken ...</a>
-                        </li>
-                        <li><a target="_blank" href="/log/export/">Exportieren ...</a>
-                        </li>
-                      </ul>
-                    </li>
-                    <li><a class="close-link"><i class="fa fa-close"></i></a>
-                    </li>
-                  </ul>
-                  <div class="clearfix"></div>
-                </div>
-                <div class="x_content">
-                  <div class="dashboard-widget-content">
+                <div class="x_panel">
+                    <div class="x_title">
+                        <h2>Aktivitäten
+                            <small>Sessions</small>
+                        </h2>
+                        <ul class="nav navbar-right panel_toolbox">
+                            <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                            </li>
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
+                                   aria-expanded="false"><i class="fa fa-wrench"></i></a>
+                                <ul class="dropdown-menu" role="menu">
+                                    <li><a target="_blank" href="/log/print/">Drucken ...</a>
+                                    </li>
+                                    <li><a target="_blank" href="/log/export/">Exportieren ...</a>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li><a class="close-link"><i class="fa fa-close"></i></a>
+                            </li>
+                        </ul>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="x_content">
+                        <div class="dashboard-widget-content">
 
-                    <ul class="list-unstyled timeline widget">
-                      {% for activity in activities %}
-                          <li>
-                            <div class="block">
-                              <div class="block_content">
-                                <h2 class="title">
-                                    <a>{{ activity.title }}</a>
-                                </h2>
-                                <div class="byline">
-                                  <span>{{ activity.timestamp }}</span>
-                                </div>
-                                <p class="excerpt">
-                                    {{ activity.text }}
-                                </p>
-                              </div>
-                            </div>
-                          </li>
-                      {% endfor %}
-                    </ul>
-                  </div>
+                            <ul class="list-unstyled timeline widget">
+                                {% for activity in activities %}
+                                    <li>
+                                        <div class="block">
+                                            <div class="block_content">
+                                                <h2 class="title">
+                                                    <a>{{ activity.title }}</a>
+                                                </h2>
+                                                <div class="byline">
+                                                    <span>{{ activity.timestamp }}</span>
+                                                </div>
+                                                <p class="excerpt">
+                                                    {{ activity.text }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
                 </div>
-              </div>
             </div>
 
 
             <div class="col-md-8 col-sm-8 col-xs-12">
 
-              <div class="row">
+                <div class="row">
 
 
-              </div>
+                </div>
             </div>
-          </div>
         </div>
-        <!-- /page content -->
+    </div>
+    <!-- /page content -->
 {% endblock %}
 
 {% block additionalJS %}
@@ -240,140 +248,139 @@
 
     <!-- bootstrap-daterangepicker -->
     <script>
-    moment.locale('de');
-      $(document).ready(function() {
+        moment.locale('de');
+        $(document).ready(function () {
 
 
+            var cb = function (start, end, label) {
+                console.log(start.toISOString(), end.toISOString(), label);
+                $('#reportrange span').html(start.format('D MMMM, YYYY') + ' - ' + end.format('D MMMM, YYYY'));
+                $('#reportrange #timerange_start').attr('value', start.format('l'));
+                $('#reportrange #timerange_end').attr('value', end.format('l'));
+            };
 
-        var cb = function(start, end, label) {
-          console.log(start.toISOString(), end.toISOString(), label);
-          $('#reportrange span').html(start.format('D MMMM, YYYY') + ' - ' + end.format('D MMMM, YYYY'));
-          $('#reportrange #timerange_start').attr('value', start.format('l'));
-          $('#reportrange #timerange_end').attr('value', end.format('l'));
-        };
+            var optionSet1 = {
+                startDate: moment().subtract(4, 'days'),
+                endDate: moment(),
+                minDate: '01/01/2012',
+                maxDate: moment(),
+                dateLimit: {
+                    days: 60
+                },
+                showDropdowns: true,
+                showWeekNumbers: true,
+                timePicker: false,
+                timePickerIncrement: 1,
+                timePicker24Hour: true,
+                ranges: {
+                    'Heute': [moment().subtract(1, 'days'), moment()],
+                    'Gestern': [moment().subtract(2, 'days'), moment().subtract(1, 'days')],
+                    'Letzte 7 Tage': [moment().subtract(6, 'days'), moment()],
+                    'Dieser Monat': [moment().startOf('month'), moment().endOf('month')]
+                },
+                opens: 'left',
+                buttonClasses: ['btn btn-default'],
+                applyClass: 'btn-small btn-primary',
+                cancelClass: 'btn-small',
+                format: 'DD.MM.YYYY',
+                separator: ' bis ',
+                locale: {
+                    applyLabel: '<i class="fa fa-check"></i>',
+                    cancelLabel: '<i class="fa fa-ban"></i>',
+                    fromLabel: 'von',
+                    toLabel: 'bis',
+                    customRangeLabel: 'Eigenes...',
+                    daysOfWeek: ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'],
+                    monthNames: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
+                    firstDay: 1
+                }
+            };
+            $('#reportrange span').html(moment().subtract(29, 'days').format('D MMMM, YYYY') + ' - ' + moment().format('D MMMM, YYYY'));
+            $('#reportrange').daterangepicker(optionSet1, cb);
+            $('#reportrange').on('show.daterangepicker', function () {
+                console.log("show event fired");
+            });
+            $('#reportrange').on('hide.daterangepicker', function () {
+                console.log("hide event fired");
+            });
+            $('#reportrange').on('apply.daterangepicker', function (ev, picker) {
+                console.log("apply event fired, start/end dates are " + picker.startDate.format('D MMMM, YYYY') + " bis " + picker.endDate.format('D MMMM, YYYY'));
+                $("#timerange_form").submit();
+            });
+            $('#reportrange').on('cancel.daterangepicker', function (ev, picker) {
+                console.log("cancel event fired");
+            });
 
-        var optionSet1 = {
-          startDate: moment().subtract(4, 'days'),
-          endDate: moment(),
-          minDate: '01/01/2012',
-          maxDate: moment(),
-          dateLimit: {
-            days: 60
-          },
-          showDropdowns: true,
-          showWeekNumbers: true,
-          timePicker: false,
-          timePickerIncrement: 1,
-          timePicker24Hour: true,
-          ranges: {
-            'Heute': [moment().subtract(1, 'days'), moment()],
-            'Gestern': [moment().subtract(2, 'days'), moment().subtract(1, 'days')],
-            'Letzte 7 Tage': [moment().subtract(6, 'days'), moment()],
-            'Dieser Monat': [moment().startOf('month'), moment().endOf('month')]
-          },
-          opens: 'left',
-          buttonClasses: ['btn btn-default'],
-          applyClass: 'btn-small btn-primary',
-          cancelClass: 'btn-small',
-          format: 'DD.MM.YYYY',
-          separator: ' bis ',
-          locale: {
-            applyLabel: '<i class="fa fa-check"></i>',
-            cancelLabel: '<i class="fa fa-ban"></i>',
-            fromLabel: 'von',
-            toLabel: 'bis',
-            customRangeLabel: 'Eigenes...',
-            daysOfWeek: ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'],
-            monthNames: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
-            firstDay: 1
-          }
-        };
-        $('#reportrange span').html(moment().subtract(29, 'days').format('D MMMM, YYYY') + ' - ' + moment().format('D MMMM, YYYY'));
-        $('#reportrange').daterangepicker(optionSet1, cb);
-        $('#reportrange').on('show.daterangepicker', function() {
-          console.log("show event fired");
         });
-        $('#reportrange').on('hide.daterangepicker', function() {
-          console.log("hide event fired");
-        });
-        $('#reportrange').on('apply.daterangepicker', function(ev, picker) {
-          console.log("apply event fired, start/end dates are " + picker.startDate.format('D MMMM, YYYY') + " bis " + picker.endDate.format('D MMMM, YYYY'));
-          $("#timerange_form").submit();
-        });
-        $('#reportrange').on('cancel.daterangepicker', function(ev, picker) {
-          console.log("cancel event fired");
-        });
-
-      });
     </script>
     <!-- /bootstrap-daterangepicker -->
 
     <!-- Loadprofile/Flot -->
     <script>
         var options = {
-          series: {
-            lines: {
-              show: false,
-              fill: true
+            series: {
+                lines: {
+                    show: false,
+                    fill: true
+                },
+                splines: {
+                    show: true,
+                    tension: 0.4,
+                    lineWidth: 1,
+                    fill: 0.4
+                },
+                points: {
+                    radius: 1,
+                    show: true
+                },
+                legend: {
+                    show: true,
+                    position: 'ne'
+                },
+                shadowSize: 2
             },
-            splines: {
-              show: true,
-              tension: 0.4,
-              lineWidth: 1,
-              fill: 0.4
+            grid: {
+                verticalLines: true,
+                hoverable: true,
+                autoHighlight: true,
+                tickColor: "#d5d5d5",
+                borderWidth: 1,
+                color: '#b2b2b2'
             },
-            points: {
-              radius: 1,
-              show: true
+            colors: ["rgba(38, 185, 154, 0.38)", "rgba(3, 88, 106, 0.38)"],
+            xaxis: {
+                tickColor: "rgba(51, 51, 51, 0.06)",
+                mode: "time",
+                timeformat: '%h',
+                timezone: "browser",
+                minTickSize: [1, "hour"],
+                maxTickSize: [1, "week"],
+                twelveHourClock: false,
+                //monthNames: optionSet1.locale.monthNames,
+                //dayNames: optionSet1.locale.daysOfWeek,
+                axisLabel: "Uhrzeit/Datum",
+                axisLabelUseCanvas: true,
+                axisLabelFontSizePixels: 12,
+                axisLabelFontFamily: 'Verdana, Arial',
+                axisLabelPadding: 10
             },
-            legend: {
-              show: true,
-              position: 'ne'
+            yaxis: {
+                ticks: 8,
+                tickColor: "rgba(51, 51, 51, 0.06)",
             },
-            shadowSize: 2
-          },
-          grid: {
-            verticalLines: true,
-            hoverable: true,
-            autoHighlight: true,
-            tickColor: "#d5d5d5",
-            borderWidth: 1,
-            color: '#b2b2b2'
-          },
-          colors: ["rgba(38, 185, 154, 0.38)", "rgba(3, 88, 106, 0.38)"],
-          xaxis: {
-            tickColor: "rgba(51, 51, 51, 0.06)",
-            mode: "time",
-            timeformat: '%h',
-            timezone: "browser",
-            minTickSize: [1, "hour"],
-            maxTickSize: [1, "week"],
-            twelveHourClock: false,
-            //monthNames: optionSet1.locale.monthNames,
-            //dayNames: optionSet1.locale.daysOfWeek,
-            axisLabel: "Uhrzeit/Datum",
-            axisLabelUseCanvas: true,
-            axisLabelFontSizePixels: 12,
-            axisLabelFontFamily: 'Verdana, Arial',
-            axisLabelPadding: 10
-          },
-          yaxis: {
-            ticks: 8,
-            tickColor: "rgba(51, 51, 51, 0.06)",
-          },
-          tooltip: {
-            show: true,
-            content: "%x Uhr: %y Wh"
-          }
+            tooltip: {
+                show: true,
+                content: "%x Uhr: %y Wh"
+            }
         };
 
         plot = $.plot($("#canvas_dahs"), [[]], options);
 
-        $("#timerange_form").submit(function(e) {
+        $("#timerange_form").submit(function (e) {
             e.preventDefault();
             var start = $("#timerange_start").val();
             var end = $("#timerange_end").val();
-            ajaxLoadProfile('/api/loadprofile?format=json&start='+start+'&end='+end+'')
+            ajaxLoadProfile('/api/loadprofile?format=json&start=' + start + '&end=' + end + '')
         });
 
         //noinspection PointlessArithmeticExpressionJS
@@ -390,7 +397,7 @@
         ajaxLoadProfile('/api/loadprofile?format=json');
 
         function gd(isoformat) {
-          return new Date(isoformat).getTime();
+            return new Date(isoformat).getTime();
         }
 
         /**
@@ -404,29 +411,29 @@
             console.log("Made ajax request");
 
             consumption_values = [];
-            for(var i=0;i<consumption.length - 1;i++) {
-                consumption_values.push([gd(""+ consumption[i].saved_time +""),
-                    consumption[i+1].value_sum - consumption[i].value_sum]);
+            for (var i = 0; i < consumption.length - 1; i++) {
+                consumption_values.push([gd("" + consumption[i].saved_time + ""),
+                    consumption[i + 1].value_sum - consumption[i].value_sum]);
             }
 
             supply_values = [];
-            for(var i=0;i<supply.length - 1;i++) {
-                supply_values.push([gd(""+ supply[i].saved_time +""),
-                    supply[i+1].value_sum - supply[i].value_sum]);
+            for (var i = 0; i < supply.length - 1; i++) {
+                supply_values.push([gd("" + supply[i].saved_time + ""),
+                    supply[i + 1].value_sum - supply[i].value_sum]);
             }
 
             plot.setData([
                 {label: '&nbsp;Verbrauch', data: consumption_values},
                 {label: '&nbsp;Erzeugnis', data: supply_values}
-                ]);
+            ]);
             plot.setupGrid();
             plot.draw();
 
             var length = plot.getData()[0].data.length - 1;
             var last_old = plot.getData()[0].data[length];
 
-            if(last_old != null && last_old != undefined) {
-                if(consumption_values[length][0] !== last_old[0]) {
+            if (last_old != null && last_old != undefined) {
+                if (consumption_values[length][0] !== last_old[0]) {
                     console.log("There's new data, redraw the graph");
                     plot.setData([consumption_values, supply_values]);
                     plot.setupGrid();

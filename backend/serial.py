@@ -6,78 +6,87 @@ from mmetering.models import Meter, MeterData
 
 
 def save_meter_data():
-  """
-  Converts database objects into virtual meter
-  objects (see EastronSDM630 class)
-  """
-  meter_IM = get_meter_objects('IM')
-  meter_EX = get_meter_objects('EX')
+    """
+    Converts database objects into virtual meter
+    objects (see EastronSDM630 class)
+    """
+    import_meters = get_meter_objects('IM')
+    export_meters = get_meter_objects('EX')
 
-  meter_objects_IM = [EastronSDM630(id, address, start, end, 'IM') for id, address, start, end in meter_IM]
-  meter_objects_EX = [EastronSDM630(id, address, start, end, 'EX') for id, address, start, end in meter_EX]
+    import_meter_objects = [EastronSDM630(id, address, start, end, 'IM') for id, address, start, end in import_meters]
+    export_meter_objects = [EastronSDM630(id, address, start, end, 'EX') for id, address, start, end in export_meters]
 
-  loadData(meter_objects_IM)
-  loadData(meter_objects_EX)
+    load_data(import_meter_objects)
+    load_data(export_meter_objects)
 
-  return_string = "Requested devices:\n"
-  for meter in meter_objects_IM + meter_objects_EX:
-    return_string += "%s%d, " % (meter.getModus(), meter.getAddress())
+    return_string = "Requested devices:\n"
+    for meter in import_meter_objects + export_meter_objects:
+        return_string += "%s%d, " % (meter.get_modus(), meter.get_address())
 
-  return return_string
+    return return_string
+
 
 def get_meter_objects(modus):
-  """
-  Returns all active meter django objects with
-  corresponding modus
-  :param modus:
-  :return:
-  """
-  return Meter.objects\
-    .filter(flat__modus__exact=modus, active=True)\
-    .values_list('id',
-                 'addresse',
-                 'start_datetime',
-                 'end_datetime'
-                 )
+    """
+    Returns all active meter django objects with
+    corresponding modus
+    :param modus:
+    :return:
+    """
+    return Meter.objects \
+        .filter(flat__modus__exact=modus, active=True) \
+        .values_list('id',
+                     'addresse',
+                     'start_datetime',
+                     'end_datetime'
+                     )
 
-def updateStartDate(id):
-  """
-  Updates a meter models startdate field
-  :param id: a meters unique id
-  """
-  meter = Meter.objects.get(pk=id)
-  meter.start_datetime = datetime.today()
-  meter.save()
 
-def saveValue(id, cur_datetime, val):
-  """
-  Saves a given value and datetime in a django model
-  :param id: a meters unique id
-  :param cur_datetime: current datetime (datetime.datetime object)
-  :param val: the meter reading
-  """
-  value = MeterData(meter_id=id, saved_time=cur_datetime, value=val)
-  value.save()
-  print("%s: Saved device with meter id %d" % (cur_datetime, id), file=sys.stdout)
+def update_start_date(id):
+    """
+    Updates a meter models startdate field
+    :param id: a meters unique id
+    """
+    meter = Meter.objects.get(pk=id)
+    meter.start_datetime = datetime.today()
+    meter.save()
 
-def loadData(objects):
-  """
-  Loops through a EastronSDM630 object list, checks wether a startdate
-  has already been set or not and requests the current Import/Export
-  by calling EastronSDM630s getValue() method
-  :param objects: list of instances of the EastronSDM630 class
-  """
-  for meter in objects:
-    if meter.getStart() is None:
-      updateStartDate(meter.getId())
 
-    value = None
-    try:
-      value = meter.getValue()
-      print("%s: Got %s on address %d (ID %d)" % (datetime.today(), str(value), meter.getAddress(), meter.getId()), file=sys.stdout)
-    except RuntimeError:
-      print("There has been an error", file=sys.stderr)
-      print("Exception: ", exc_info=True, file=sys.stderr)
+def save_value(id, cur_datetime, val):
+    """
+    Saves a given value and datetime in a django model
+    :param id: a meters unique id
+    :param cur_datetime: current datetime (datetime.datetime object)
+    :param val: the meter reading
+    """
+    value = MeterData(meter_id=id, saved_time=cur_datetime, value=val)
+    value.save()
+    print("%s: Saved device with meter id %d" % (cur_datetime, id), file=sys.stdout)
 
-    if value is not None:
-      saveValue(meter.getId(), datetime.today().replace(microsecond=0, second=0), round(value*1000) / 1000.0)
+
+def load_data(objects):
+    """
+    Loops through a EastronSDM630 object list, checks wether a startdate
+    has already been set or not and requests the current Import/Export
+    by calling EastronSDM630s get_value() method
+    :param objects: list of instances of the EastronSDM630 class
+    """
+    for meter in objects:
+        if meter.get_start() is None:
+            update_start_date(meter.get_id())
+
+        value = None
+        try:
+            value = meter.get_value()
+            print(
+                "%s: Got %s on address %d (ID %d)" % (datetime.today(),
+                                                      str(value),
+                                                      meter.get_address(),
+                                                      meter.get_id()),
+                file=sys.stdout)
+        except RuntimeError:
+            print("There has been an error", file=sys.stderr)
+            print("Exception: ", exc_info=True, file=sys.stderr)
+
+        if value is not None:
+            save_value(meter.get_id(), datetime.today().replace(microsecond=0, second=0), round(value * 1000) / 1000.0)

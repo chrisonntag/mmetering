@@ -2,6 +2,7 @@ from django import template
 
 register = template.Library()
 
+
 @register.filter(name="as_percentage_of")
 def as_percentage_of(part, whole):
     try:
@@ -12,6 +13,7 @@ def as_percentage_of(part, whole):
         return "%d%%" % result
     except (ValueError, ZeroDivisionError):
         return "keine Daten"
+
 
 @register.filter
 def subtract(value, arg):

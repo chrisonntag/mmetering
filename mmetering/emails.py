@@ -46,7 +46,7 @@ def send_attachment_email():
 
     # get the excel file until today as a HttpResponse object
     xls = XLS(None)
-    httpresponse = xls.getFileUntil(datetime.today())
+    httpresponse = xls.get_file_until(datetime.today())
 
     user = getpass.getuser()
     savedir = "/Users/%s/mmetering-data/" % user
@@ -61,7 +61,8 @@ def send_attachment_email():
 
     # attach file to the email
     with open(savedir + filename, 'rb') as excel_file:
-        email.attach(excel_file.name, excel_file.read(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        email.attach(excel_file.name, excel_file.read(),
+                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
         excel_file.close()
 
     return email.send(fail_silently=False)

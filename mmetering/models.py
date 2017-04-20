@@ -17,6 +17,7 @@ class Flat(models.Model):
         verbose_name = "Wohnung"
         verbose_name_plural = "Wohnungen"
 
+
 class Meter(models.Model):
     flat = models.OneToOneField(Flat, verbose_name="Wohnung")
     addresse = models.IntegerField(default=0, help_text="Addresse, auf der der Zähler erreichbar ist")
@@ -52,6 +53,7 @@ class Meter(models.Model):
         verbose_name = "Zähler"
         verbose_name_plural = "Zähler"
 
+
 class MeterData(models.Model):
     meter = models.ForeignKey(Meter, on_delete=models.CASCADE)
     saved_time = models.DateTimeField()
@@ -65,6 +67,7 @@ class MeterData(models.Model):
             ("can_download", "Can download MeterData"),
             ("can_view", "Can view MeterData"),
         )
+
 
 class Activities(models.Model):
     title = models.CharField(max_length=70, help_text="Titel")

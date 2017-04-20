@@ -1,7 +1,7 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="de">
-  <head>
+<head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <!-- Meta, title, CSS, favicons, etc. -->
     <meta charset="utf-8">
@@ -17,96 +17,100 @@
 
     <!-- Custom Theme Style -->
     <link href="{% static 'mmetering/custom/css/custom.min.css' %}" rel="stylesheet">
-  </head>
+</head>
 
-  <body class="login">
-    <div>
-      <a class="hiddenanchor" id="signup"></a>
-      <a class="hiddenanchor" id="signin"></a>
+<body class="login">
+<div>
+    <a class="hiddenanchor" id="signup"></a>
+    <a class="hiddenanchor" id="signin"></a>
 
-      {% block content %}
-      <div class="login_wrapper">
-        <div class="animate form login_form">
-          <section class="login_content">
-            <img width="200" height="110" src="{% static 'mmetering/images/logo.png' %}" />
-            {% block loginform %}
-            <form action="/login/" method="post">
-              {% csrf_token %}
-                {% if next %}
-                    <input type="hidden" name="next" value="{{ next }}" />
-                {% endif %}
-              <h1>MMetering</h1>
-              <div>
-                  {%  if form.errors %}
-                    <p>Benutzername und/oder Passwort sind falsch oder sie haben keinen Mitarbeiter-Status</p>
-                  {% endif %}
-              </div>
-              <div>
-                <input type="text" name="username" class="form-control" placeholder="Benutzername" required="" />
-              </div>
-              <div>
-                <input type="password" name="password" class="form-control" placeholder="Passwort" required="" />
-              </div>
-              <div>
-                <input type="submit" class="btn btn-default submit" value="Einloggen" href="/dashboard" />
-                <a class="reset_pass" href="mailto:mmetering@chrisonntag.com">Passwort vergessen?</a>
-              </div>
+    {% block content %}
+        <div class="login_wrapper">
+            <div class="animate form login_form">
+                <section class="login_content">
+                    <img width="200" height="110" src="{% static 'mmetering/images/logo.png' %}"/>
+                    {% block loginform %}
+                        <form action="/login/" method="post">
+                            {% csrf_token %}
+                            {% if next %}
+                                <input type="hidden" name="next" value="{{ next }}"/>
+                            {% endif %}
+                            <h1>MMetering</h1>
+                            <div>
+                                {% if form.errors %}
+                                    <p>Benutzername und/oder Passwort sind falsch oder sie haben keinen
+                                        Mitarbeiter-Status</p>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <input type="text" name="username" class="form-control" placeholder="Benutzername"
+                                       required=""/>
+                            </div>
+                            <div>
+                                <input type="password" name="password" class="form-control" placeholder="Passwort"
+                                       required=""/>
+                            </div>
+                            <div>
+                                <input type="submit" class="btn btn-default submit" value="Einloggen"
+                                       href="/dashboard"/>
+                                <a class="reset_pass" href="mailto:mmetering@chrisonntag.com">Passwort vergessen?</a>
+                            </div>
 
-              <div class="clearfix"></div>
+                            <div class="clearfix"></div>
 
-              <div class="separator">
+                            <div class="separator">
 
 
-                <div class="clearfix"></div>
-                <br />
+                                <div class="clearfix"></div>
+                                <br/>
 
-                <div>
-                  <p>©2016 All Rights Reserved.</p>
-                </div>
-              </div>
-            </form>
-            {% endblock loginform %}
-          </section>
+                                <div>
+                                    <p>©2016 All Rights Reserved.</p>
+                                </div>
+                            </div>
+                        </form>
+                    {% endblock loginform %}
+                </section>
+            </div>
+
+            <div id="register" class="animate form registration_form">
+                <section class="login_content">
+                    <form>
+                        <h1>Create Account</h1>
+                        <div>
+                            <input type="text" class="form-control" placeholder="Username" required=""/>
+                        </div>
+                        <div>
+                            <input type="email" class="form-control" placeholder="Email" required=""/>
+                        </div>
+                        <div>
+                            <input type="password" class="form-control" placeholder="Password" required=""/>
+                        </div>
+                        <div>
+                            <a class="btn btn-default submit" href="index.html">Submit</a>
+                        </div>
+
+                        <div class="clearfix"></div>
+
+                        <div class="separator">
+                            <p class="change_link">Already a member ?
+                                <a href="#signin" class="to_register"> Log in </a>
+                            </p>
+
+                            <div class="clearfix"></div>
+                            <br/>
+
+                            <div>
+                                <h1><i class="fa fa-paw"></i> MMetering</h1>
+                                <p>©2017 All Rights Reserved.</p>
+                            </div>
+                        </div>
+                    </form>
+                </section>
+            </div>
         </div>
+    {% endblock %}
 
-        <div id="register" class="animate form registration_form">
-          <section class="login_content">
-            <form>
-              <h1>Create Account</h1>
-              <div>
-                <input type="text" class="form-control" placeholder="Username" required="" />
-              </div>
-              <div>
-                <input type="email" class="form-control" placeholder="Email" required="" />
-              </div>
-              <div>
-                <input type="password" class="form-control" placeholder="Password" required="" />
-              </div>
-              <div>
-                <a class="btn btn-default submit" href="index.html">Submit</a>
-              </div>
-
-              <div class="clearfix"></div>
-
-              <div class="separator">
-                <p class="change_link">Already a member ?
-                  <a href="#signin" class="to_register"> Log in </a>
-                </p>
-
-                <div class="clearfix"></div>
-                <br />
-
-                <div>
-                  <h1><i class="fa fa-paw"></i> MMetering</h1>
-                  <p>©2017 All Rights Reserved.</p>
-                </div>
-              </div>
-            </form>
-          </section>
-        </div>
-      </div>
-      {% endblock %}
-
-    </div>
-  </body>
+</div>
+</body>
 </html>
