@@ -4,64 +4,70 @@
 {% block title %}MMetering | Download{% endblock %}
 
 {% block headcss %}
+    <!--suppress ALL -->
     <link href="{% static 'mmetering/css/contact.css' %}" type="text/css">
 {% endblock %}
 
 {% block content %}
-<!-- page content -->
-<div class="right_col" role="main">
-    <div class="row">
-      <div class="col-md-12 col-sm-12 col-xs-12">
-        <div class="x_panel">
-          <div class="x_title">
-            <h2>Kontakt <small></small></h2>
-            <div class="clearfix"></div>
-          </div>
-          <div class="x_content">
-            <form role="form" class="form-horizontal form-label-left" action="" method="POST" novalidate>
-              {% csrf_token %}
-              <p>{{ form.non_field_errors }}</p>
-              <span class="section">Pers&ouml;nliche Informationen</span>
+    <!-- page content -->
+    <div class="right_col" role="main">
+        <div class="row">
+            <div class="col-md-12 col-sm-12 col-xs-12">
+                <div class="x_panel">
+                    <div class="x_title">
+                        <h2>Kontakt
+                            <small></small>
+                        </h2>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="x_content">
+                        <form role="form" class="form-horizontal form-label-left" action="" method="POST" novalidate>
+                            {% csrf_token %}
+                            <p>{{ form.non_field_errors }}</p>
+                            <span class="section">Pers&ouml;nliche Informationen</span>
 
-              <div class="item form-group">
-                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="{{ form.name.id_for_label }}">Name <span class="required">*</span>
-                </label>
-                <div class="col-md-6 col-sm-6 col-xs-12">
-                  {{ form.name }}
-                  {{ form.name.errors }}
+                            <div class="item form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12"
+                                       for="{{ form.name.id_for_label }}">Name <span class="required">*</span>
+                                </label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    {{ form.name }}
+                                    {{ form.name.errors }}
+                                </div>
+                            </div>
+                            <div class="item form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12"
+                                       for="{{ form.email.id_for_label }}">Email <span class="required">*</span>
+                                </label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    {{ form.email }}
+                                    {{ form.email.errors }}
+                                </div>
+                            </div>
+                            <div class="item form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12"
+                                       for="{{ form.message.id_for_label }}">Textarea <span class="required">*</span>
+                                </label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    {{ form.message }}
+                                    {{ form.message.errors }}
+                                </div>
+                            </div>
+                            <div class="ln_solid"></div>
+                            <div class="form-group">
+                                <div class="col-md-6 col-md-offset-3">
+                                    <button type="submit" class="btn btn-primary">Abbrechen</button>
+                                    <input id="send" type="submit" class="btn btn-success" value="Senden"/>
+                                    {{ form.submit }}
+                                </div>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-              </div>
-              <div class="item form-group">
-                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="{{ form.email.id_for_label }}">Email <span class="required">*</span>
-                </label>
-                <div class="col-md-6 col-sm-6 col-xs-12">
-                    {{ form.email }}
-                    {{ form.email.errors }}
-                </div>
-              </div>
-              <div class="item form-group">
-                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="{{ form.message.id_for_label }}">Textarea <span class="required">*</span>
-                </label>
-                <div class="col-md-6 col-sm-6 col-xs-12">
-                    {{ form.message }}
-                    {{ form.message.errors }}
-                </div>
-              </div>
-              <div class="ln_solid"></div>
-              <div class="form-group">
-                <div class="col-md-6 col-md-offset-3">
-                  <button type="submit" class="btn btn-primary">Abbrechen</button>
-                  <input id="send" type="submit" class="btn btn-success" value="Senden"></input>
-                  {{ form.submit }}
-                </div>
-              </div>
-            </form>
-          </div>
+            </div>
         </div>
-      </div>
     </div>
-</div>
-<!-- /page content -->
+    <!-- /page content -->
 {% endblock %}
 
 {% block additionalJS %}
@@ -73,35 +79,35 @@
 
     <!-- validator -->
     <script>
-      // initialize the validator function
-      validator.message.email = "Bitte eine echte E-mail Adresse angeben";
-      validator.message.required = 'Dieses Feld wird benötigt';
-      validator.message.empty = 'Dieses Feld wird benötigt';
+        // initialize the validator function
+        validator.message.email = "Bitte eine echte E-mail Adresse angeben";
+        validator.message.required = 'Dieses Feld wird benötigt';
+        validator.message.empty = 'Dieses Feld wird benötigt';
 
-      // validate a field on "blur" event, a 'select' on 'change' event & a '.reuired' classed multifield on 'keyup':
-      $('form')
-        .on('blur', 'input[required], input.optional, select.required', validator.checkField)
-        .on('change', 'select.required', validator.checkField)
-        .on('keypress', 'input[required][pattern]', validator.keypress);
+        // validate a field on "blur" event, a 'select' on 'change' event & a '.reuired' classed multifield on 'keyup':
+        $('form')
+            .on('blur', 'input[required], input.optional, select.required', validator.checkField)
+            .on('change', 'select.required', validator.checkField)
+            .on('keypress', 'input[required][pattern]', validator.keypress);
 
-      $('.multi.required').on('keyup blur', 'input', function() {
-        validator.checkField.apply($(this).siblings().last()[0]);
-      });
+        $('.multi.required').on('keyup blur', 'input', function () {
+            validator.checkField.apply($(this).siblings().last()[0]);
+        });
 
-      $('form').submit(function(e) {
-        e.preventDefault();
-        var submit = true;
+        $('form').submit(function (e) {
+            e.preventDefault();
+            var submit = true;
 
-        // evaluate the form using generic validaing
-        if (!validator.checkAll($(this))) {
-          submit = false;
-        }
+            // evaluate the form using generic validaing
+            if (!validator.checkAll($(this))) {
+                submit = false;
+            }
 
-        if (submit)
-          this.submit();
+            if (submit)
+                this.submit();
 
-        return false;
-      });
+            return false;
+        });
     </script>
     <!-- /validator -->
 {% endblock %}

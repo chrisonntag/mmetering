@@ -16,7 +16,8 @@ Including another URLconf
 from django.conf.urls import url, include
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
-from django.contrib.auth.decorators import permission_required, login_required
+from django.contrib.auth.decorators import permission_required
+
 import mmetering.views as views
 
 urlpatterns = [
@@ -28,7 +29,7 @@ urlpatterns = [
     url(r'^download/', permission_required("mmetering.can_download")(views.DownloadView.as_view()), name="download"),
     url(r'^contact/', views.ContactView.as_view(), name="contact"),
     url(r'^admin/', admin.site.urls),
-    url(r'^accounts/login/$', admin.site.login), #used for making permission_required decorator work
+    url(r'^accounts/login/$', admin.site.login),  # used for making permission_required decorator work
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^api/loadprofile/$', views.APILoadProfileView.as_view()),
     url(r'^api/overview/$', views.APIDataOverviewView.as_view()),

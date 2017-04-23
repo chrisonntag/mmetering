@@ -1,9 +1,6 @@
-import datetime
-import minimalmodbus
-
-from django.db import models
-from django.utils import timezone
 from django.core.exceptions import ValidationError
+from django.db import models
+
 
 class Flat(models.Model):
     MODE_TYPES = (
@@ -19,6 +16,7 @@ class Flat(models.Model):
     class Meta:
         verbose_name = "Wohnung"
         verbose_name_plural = "Wohnungen"
+
 
 class Meter(models.Model):
     flat = models.OneToOneField(Flat, verbose_name="Wohnung")
@@ -55,6 +53,7 @@ class Meter(models.Model):
         verbose_name = "Zähler"
         verbose_name_plural = "Zähler"
 
+
 class MeterData(models.Model):
     meter = models.ForeignKey(Meter, on_delete=models.CASCADE)
     saved_time = models.DateTimeField()
@@ -68,6 +67,7 @@ class MeterData(models.Model):
             ("can_download", "Can download MeterData"),
             ("can_view", "Can view MeterData"),
         )
+
 
 class Activities(models.Model):
     title = models.CharField(max_length=70, help_text="Titel")

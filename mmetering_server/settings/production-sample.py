@@ -14,7 +14,7 @@ SECRET_KEY = config.get('variables', 'secretkey')
 DEBUG = True
 
 ALLOWED_HOSTS = [
-  'domain.example.com',
+    'domain.example.com',
 ]
 
 ADMINS = (
@@ -36,10 +36,11 @@ DATABASES = {
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
+# noinspection PyUnresolvedReferences
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATIC_URL = '/static/'
 
-#EMAIL SETTINGS
+# EMAIL SETTINGS
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = config.get('mail', 'host')
 EMAIL_HOST_USER = config.get('mail', 'user')
@@ -48,3 +49,4 @@ EMAIL_USE_SSL = config.getboolean('mail', 'ssl')
 EMAIL_USE_TLS = config.getboolean('mail', 'tls')
 EMAIL_PORT = config.getint('mail', 'port')
 DEFAULT_FROM_EMAIL = config.get('mail', 'from')
+DEFAULT_TO_EMAIL = config.get('mail', 'to')
