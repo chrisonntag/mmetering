@@ -49,7 +49,7 @@ def send_attachment_email():
     httpresponse = xls.get_file_until(datetime.today())
 
     user = getpass.getuser()
-    savedir = "/Users/%s/mmetering-data/" % user
+    savedir = "/home/%s/mmetering-data/" % user
     if not os.path.exists(savedir):
         os.makedirs(savedir)
 
