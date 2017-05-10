@@ -71,8 +71,6 @@ LOGGING = {
             'class': 'logging.FileHandler',
             'filename': '/var/log/mmetering/mmetering.log',
             'formatter': 'standard',
-            'maxBytes': 1024*1024*10,  # 10 MB
-            'backupCount': 5,
         }
     },
     'loggers': {

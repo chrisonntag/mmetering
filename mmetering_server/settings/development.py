@@ -51,7 +51,7 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-        'logger': {
+        'standard': {
             'format': '%(module)s[%(levelname)s]:%(asctime)s: %(message)s',
         }
     },
@@ -61,8 +61,6 @@ LOGGING = {
             'class': 'logging.FileHandler',
             'filename': '/var/log/mmetering/mmetering.log',
             'formatter': 'standard',
-            'maxBytes': 1024*1024*10,  # 10 MB
-            'backupCount': 5,
         }
     },
     'loggers': {
