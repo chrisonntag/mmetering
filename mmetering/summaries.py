@@ -5,6 +5,8 @@ from django.db.models import Sum, Count
 
 from mmetering.models import Flat, Meter, MeterData, Activities
 
+logger = logging.getLogger(__name__)
+
 
 class Overview:
     def __init__(self, filters):
@@ -32,7 +34,7 @@ class Overview:
             raw = list(map(int, string.split('.')))
             return datetime(raw[2], raw[1], raw[0], 0, 0, 0, 0)
         except RuntimeError:
-            logging.error("Expected string format is DD.MM.YYYY. I got %s" % string)
+            logger.warning("Expected string format is DD.MM.YYYY. I got %s" % string)
 
     def is_empty(self, structure):
         if structure:

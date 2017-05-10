@@ -50,3 +50,43 @@ EMAIL_USE_TLS = config.getboolean('mail', 'tls')
 EMAIL_PORT = config.getint('mail', 'port')
 DEFAULT_FROM_EMAIL = config.get('mail', 'from')
 DEFAULT_TO_EMAIL = list(filter(lambda x: x is not "", config.get('mail', 'to').split("\n")))
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'standard': {
+            'format': '%(module)s[%(levelname)s]:%(asctime)s: %(message)s',
+        }
+    },
+    'handlers': {
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler',
+            'include_html': True,
+            'formatter': 'standard',
+        },
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': '/var/log/mmetering/mmetering.log',
+            'formatter': 'standard',
+            'maxBytes': 1024*1024*10,  # 10 MB
+            'backupCount': 5,
+        }
+    },
+    'loggers': {
+        '': {
+            'handlers': ['file'],
+            'level': 'INFO',
+        },
+        'backend': {
+            'handlers': ['file', 'mail_admins'],
+            'level': 'ERROR',
+        },
+        'mmetering': {
+            'handlers': ['file', 'mail_admins'],
+            'level': 'ERROR',
+        }
+    }
+}

@@ -1,11 +1,11 @@
 from celery.schedules import crontab
 from celery.task import periodic_task
-from celery.utils.log import get_task_logger
 
 from backend.serial import save_meter_data
 from mmetering.emails import send_attachment_email
+import logging
 
-logger = get_task_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 @periodic_task(
@@ -19,8 +19,7 @@ def save_meter_data_task():
     reset from all active connected meters
     """
     saved_meters = save_meter_data()
-    logger.info("Saved values from current active meters")
-    logger.info(saved_meters)
+    logger.debug(saved_meters)
 
 
 @periodic_task(
@@ -34,4 +33,3 @@ def send_meter_data_email_task():
     on the first of each month
     """
     send_attachment_email()
-    logger.info("Sent mail with current meter data")
