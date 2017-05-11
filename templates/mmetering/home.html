@@ -42,8 +42,8 @@
               </span>
             </div>
             <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
-                <span class="count_top"><i class="fa fa-percent"></i> Durchschnittsverbrauch</span>
-                <div class="count">{{ day.current|floatformat:0 }}<span
+                <span class="count_top"><i class="fa fa-percent"></i> Tagesverbrauch</span>
+                <div class="count">{{ day.current|floatformat:0 }} <span
                         class="mmetering_unit">{{ day.unit }}</span></div>
                 <span class="count_bottom">
                   {% if day.current > day.last %}
@@ -120,6 +120,7 @@
                             <h3>
                                 Lastprofil
                                 <small></small>
+                                <button style="font-size: 12px;" id="resetzoom_btn">Zoom zur&uuml;cksetzen</button>
                             </h3>
                         </div>
                         <div class="col-md-6">
@@ -233,6 +234,7 @@
     <script src="{% static 'mmetering/vendors/skycons/skycons.js' %}"></script>
     <!-- Flot -->
     <script src="{% static 'mmetering/vendors/Flot/jquery.flot.js' %}"></script>
+    <script src="{% static 'mmetering/vendors/Flot/jquery.flot.selection.js' %}"></script>
     <script src="{% static 'mmetering/vendors/Flot/jquery.flot.pie.js' %}"></script>
     <script src="{% static 'mmetering/vendors/Flot/jquery.flot.time.js' %}"></script>
     <script src="{% static 'mmetering/vendors/Flot/jquery.flot.stack.js' %}"></script>
@@ -351,6 +353,9 @@
                 },
                 shadowSize: 2
             },
+            selection: {
+                mode: "xy"
+            },
             grid: {
                 verticalLines: true,
                 hoverable: true,
@@ -384,7 +389,31 @@
             }
         };
 
-        plot = $.plot($("#canvas_dahs"), [[]], options);
+        data = [];
+        plot = $.plot($("#canvas_dahs"), [data], options);
+
+        $("#canvas_dahs").bind("plotselected", function (event, ranges) {
+	        plotDetail = $.plot($("#canvas_dahs"), data,
+                      $.extend(true, {}, options, {
+                          xaxis: { min: ranges.xaxis.from, max: ranges.xaxis.to },
+                          yaxis: { min: ranges.yaxis.from, max: ranges.yaxis.to }
+                      }));
+
+            plot.setSelection(ranges, true);
+        });
+
+        $("#resetzoom_btn").click(function() {
+            plot = $.plot($("#canvas_dahs"), [data], options);
+
+            var start = $("#timerange_start").val();
+            var end = $("#timerange_end").val();
+
+            if(start == "" || end == "") {
+                ajaxLoadProfile('/api/loadprofile?format=json')
+            } else {
+                ajaxLoadProfile('/api/loadprofile?format=json&start=' + start + '&end=' + end + '')
+            }
+        });
 
         $("#timerange_form").submit(function (e) {
             e.preventDefault();
@@ -433,10 +462,11 @@
                     supply[i].value_sum - supply[i-1].value_sum]);
             }
 
-            plot.setData([
+            data = [
                 {label: '&nbsp;Verbrauch', data: consumption_values},
                 {label: '&nbsp;Erzeugnis', data: supply_values}
-            ]);
+            ];
+            plot.setData(data);
             plot.setupGrid();
             plot.draw();
 
