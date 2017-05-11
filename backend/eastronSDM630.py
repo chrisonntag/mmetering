@@ -2,10 +2,11 @@
 Driver for the Eastron SDM630 metering device, for communication via the Modbus RTU protocol.
 """
 
-import sys
 import minimalmodbus
-from datetime import datetime
 from django.conf import settings
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class EastronSDM630(minimalmodbus.Instrument):
@@ -55,8 +56,10 @@ class EastronSDM630(minimalmodbus.Instrument):
             except (IOError, OSError, ValueError):
                 continue
             except RuntimeError:
-                print("There has been an error", file=sys.stderr)
-                print("Exception: ", exc_info=True, file=sys.stderr)
+                logger.error(
+                    "Couldn't reach the %s device with address %d" % (self.get_modus(), self.get_address()),
+                    exc_info=True
+                )
 
     def get_value(self):
         if settings.PRODUCTION:
@@ -65,9 +68,9 @@ class EastronSDM630(minimalmodbus.Instrument):
             else:
                 return self.get_input_register('0x48', 2)
         else:
-            print("%s: Celery beat is requesting meter data from the device with address %d" % (
-                datetime.today(), self.get_address()),
-                  file=sys.stdout)
+            logger.debug(
+                "Celery beat is requesting meter data from the device with address %d" % self.get_address()
+            )
 
     def print_value(self):
         print("Verbrauch: {} Wh".format(self.get_value()))

@@ -1,8 +1,10 @@
-import sys
 from datetime import datetime
 
 from backend.eastronSDM630 import EastronSDM630
 from mmetering.models import Meter, MeterData
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def save_meter_data():
@@ -61,7 +63,7 @@ def save_value(id, cur_datetime, val):
     """
     value = MeterData(meter_id=id, saved_time=cur_datetime, value=val)
     value.save()
-    print("%s: Saved device with meter id %d" % (cur_datetime, id), file=sys.stdout)
+    logger.debug("%s: Saved device with meter id %d" % (cur_datetime, id))
 
 
 def load_data(objects):
@@ -75,18 +77,9 @@ def load_data(objects):
         if meter.get_start() is None:
             update_start_date(meter.get_id())
 
-        value = None
-        try:
-            value = meter.get_value()
-            print(
-                "%s: Got %s on address %d (ID %d)" % (datetime.today(),
-                                                      str(value),
-                                                      meter.get_address(),
-                                                      meter.get_id()),
-                file=sys.stdout)
-        except RuntimeError:
-            print("There has been an error", file=sys.stderr)
-            print("Exception: ", exc_info=True, file=sys.stderr)
+        value = meter.get_value()
+        logger.debug("%s: Got %s on address %d (ID %d)" %
+                     (datetime.today(), str(value), meter.get_address(), meter.get_id()))
 
         if value is not None:
             save_value(meter.get_id(), datetime.today().replace(microsecond=0, second=0), round(value * 1000) / 1000.0)

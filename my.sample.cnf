@@ -22,7 +22,10 @@ ssl = <boolean:ssl>
 tls = <boolean:tls>
 port = <port>
 from = <noreplymail>
-to = <yourmail>
+to =
+    <yourmail>
+    <yoursecondmail>
+    <your-n-th-mail>
 
 [variables]
 secretkey = m3*+bby-mll*jdfhb21*!yv)x+sgga-6d_9he6gt_chcburqzb
