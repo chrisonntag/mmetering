@@ -64,9 +64,13 @@ LOGGING = {
         }
     },
     'loggers': {
-        '': {
+        'backend': {
             'handlers': ['file'],
             'level': 'DEBUG',
         },
+        'mmetering': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+        }
     }
 }

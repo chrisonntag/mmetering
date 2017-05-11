@@ -11,7 +11,7 @@ config.read(os.path.join(BASE_DIR, 'my.cnf'))
 SECRET_KEY = config.get('variables', 'secretkey')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
     'domain.example.com',
