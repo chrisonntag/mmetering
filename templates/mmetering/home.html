@@ -43,13 +43,13 @@
             </div>
             <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
                 <span class="count_top"><i class="fa fa-percent"></i> Durchschnittsverbrauch</span>
-                <div class="count">{{ average.current|floatformat:0 }}<span
-                        class="mmetering_unit">{{ average.unit }}</span></div>
+                <div class="count">{{ day.current|floatformat:0 }}<span
+                        class="mmetering_unit">{{ day.unit }}</span></div>
                 <span class="count_bottom">
-                  {% if average.current > average.last %}
-                      <i class="green"><i class="fa fa-sort-asc"></i>{{ average.current|as_percentage_of:average.last }} </i>
-                  {% elif average.current < average.last %}
-                      <i class="red"><i class="fa fa-sort-desc"></i>{{ average.current|as_percentage_of:average.last }} </i>
+                  {% if day.current > day.last %}
+                      <i class="green"><i class="fa fa-sort-asc"></i>{{ day.current|as_percentage_of:day.last }} </i>
+                  {% elif day.current < day.last %}
+                      <i class="red"><i class="fa fa-sort-desc"></i>{{ day.current|as_percentage_of:day.last }} </i>
                   {% endif %}
                     seit gestern
               </span>

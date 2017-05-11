@@ -56,28 +56,23 @@ class Overview:
         return data
 
     def get_total(self, until):
-        total_splitted = MeterData.objects.all() \
-            .filter(meter__flat__modus__exact='IM', saved_time__lt=until) \
-            .values('meter_id') \
-            .annotate(max_value=Sum('value')).order_by() \
-            .values_list('max_value')
+        active_meters = Meter.objects.filter(active=True).count()
+        total = MeterData.objects.all() \
+            .filter(meter__flat__modus__exact='IM', saved_time__lt=until, meter__active=True) \
+            .values_list('value').order_by('-value')[:active_meters]
 
-        total = []
-        for flat in total_splitted:
-            total.append(flat[0])
-
-        return total
+        # get the first value of each tuple
+        return [x[0] for x in total]
 
     def get_total_consumption(self, until):
         total = self.get_total(until)
-        return sum(total) / 1000 / 1000  # /1000 convert to MwH
+        return sum(total) / 1000  # /1000 convert to MwH
 
-    def get_average_consumption(self, until):
-        total = self.get_total(until)
-        if total:
-            return sum(total) / len(total) / 1000
-        else:
-            return 0
+    def get_day_consumption(self, until):
+        day = self.get_total(until)
+        day_before = self.get_total(until - timedelta(days=1))
+
+        return sum(day) - sum(day_before)
 
 
 class LoadProfileOverview(Overview):
@@ -106,9 +101,9 @@ class DataOverview(Overview):
                 'day_high': self.get_data_range(self.times['yesterday'], self.times['today'], 'IM').values(
                     'saved_time').order_by('-value_sum').first(),
             },
-            'average': {
-                'current': self.get_average_consumption(self.times['today']),
-                'last': self.get_average_consumption(self.times['yesterday']),
+            'day': {
+                'current': self.get_day_consumption(self.times['today']),
+                'last': self.get_day_consumption(self.times['yesterday']),
                 'unit': 'kWh'
             },
             'activities': Activities.objects.all().order_by('-timestamp')[:6]
