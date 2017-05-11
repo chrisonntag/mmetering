@@ -11,7 +11,7 @@ config.read(os.path.join(BASE_DIR, 'my.cnf'))
 SECRET_KEY = config.get('variables', 'secretkey')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
     'domain.example.com',
@@ -49,4 +49,42 @@ EMAIL_USE_SSL = config.getboolean('mail', 'ssl')
 EMAIL_USE_TLS = config.getboolean('mail', 'tls')
 EMAIL_PORT = config.getint('mail', 'port')
 DEFAULT_FROM_EMAIL = config.get('mail', 'from')
-DEFAULT_TO_EMAIL = config.get('mail', 'to')
+DEFAULT_TO_EMAIL = list(filter(lambda x: x is not "", config.get('mail', 'to').split("\n")))
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'standard': {
+            'format': '%(module)s[%(levelname)s]:%(asctime)s: %(message)s',
+        }
+    },
+    'handlers': {
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler',
+            'include_html': True,
+            'formatter': 'standard',
+        },
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': '/var/log/mmetering/mmetering.log',
+            'formatter': 'standard',
+        }
+    },
+    'loggers': {
+        '': {
+            'handlers': ['file'],
+            'level': 'INFO',
+        },
+        'backend': {
+            'handlers': ['file', 'mail_admins'],
+            'level': 'ERROR',
+        },
+        'mmetering': {
+            'handlers': ['file', 'mail_admins'],
+            'level': 'ERROR',
+        }
+    }
+}
