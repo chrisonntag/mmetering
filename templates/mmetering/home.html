@@ -253,10 +253,8 @@
 
 
             var cb = function (start, end, label) {
-                console.log(start.toISOString(), end.toISOString(), label);
+                console.log(label + "\nStart: "+start.toISOString()+"\nEnde: "+end.toISOString());
                 $('#reportrange span').html(start.format('D MMMM, YYYY') + ' - ' + end.format('D MMMM, YYYY'));
-                $('#reportrange #timerange_start').attr('value', start.format('l'));
-                $('#reportrange #timerange_end').attr('value', end.format('l'));
             };
 
             var optionSet1 = {
@@ -273,9 +271,9 @@
                 timePickerIncrement: 1,
                 timePicker24Hour: true,
                 ranges: {
-                    'Heute': [moment().subtract(1, 'days'), moment()],
-                    'Gestern': [moment().subtract(2, 'days'), moment().subtract(1, 'days')],
-                    'Letzte 7 Tage': [moment().subtract(6, 'days'), moment()],
+                    'Heute': [moment(), moment()],
+                    'Gestern': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                    'Letzte 7 Tage': [moment().subtract(7, 'days'), moment()],
                     'Dieser Monat': [moment().startOf('month'), moment().endOf('month')]
                 },
                 opens: 'left',
@@ -291,24 +289,38 @@
                     toLabel: 'bis',
                     customRangeLabel: 'Eigenes...',
                     daysOfWeek: ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'],
-                    monthNames: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
+                    monthNames: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September',
+                                'Oktober', 'November', 'Dezember'],
                     firstDay: 1
                 }
             };
-            $('#reportrange span').html(moment().subtract(29, 'days').format('D MMMM, YYYY') + ' - ' + moment().format('D MMMM, YYYY'));
+            $('#reportrange span').html(
+                moment().format('D MMMM, YYYY')
+            );
+
             $('#reportrange').daterangepicker(optionSet1, cb);
             $('#reportrange').on('show.daterangepicker', function () {
-                console.log("show event fired");
+                //console.log("show event fired");
             });
             $('#reportrange').on('hide.daterangepicker', function () {
-                console.log("hide event fired");
+                //console.log("hide event fired");
             });
             $('#reportrange').on('apply.daterangepicker', function (ev, picker) {
-                console.log("apply event fired, start/end dates are " + picker.startDate.format('D MMMM, YYYY') + " bis " + picker.endDate.format('D MMMM, YYYY'));
+                console.log("apply event fired, start/end dates are " +
+                            picker.startDate.format('MMMM Do YYYY, h:mm:ss a') +
+                            " bis " +
+                            picker.endDate.format('MMMM Do YYYY, h:mm:ss a')
+                            );
+
+                /**
+                 * set the form to the user selected values
+                 */
+                $('#reportrange #timerange_start').attr('value', picker.startDate.format('DD.MM.YYYY'));
+                $('#reportrange #timerange_end').attr('value', picker.endDate.format('DD.MM.YYYY'));
                 $("#timerange_form").submit();
             });
             $('#reportrange').on('cancel.daterangepicker', function (ev, picker) {
-                console.log("cancel event fired");
+                //console.log("cancel event fired");
             });
 
         });
@@ -351,13 +363,11 @@
             xaxis: {
                 tickColor: "rgba(51, 51, 51, 0.06)",
                 mode: "time",
-                timeformat: '%h',
+                timeformat: '%d.%m<br />%h:%Mh',
                 timezone: "browser",
                 minTickSize: [1, "hour"],
                 maxTickSize: [1, "week"],
                 twelveHourClock: false,
-                //monthNames: optionSet1.locale.monthNames,
-                //dayNames: optionSet1.locale.daysOfWeek,
                 axisLabel: "Uhrzeit/Datum",
                 axisLabelUseCanvas: true,
                 axisLabelFontSizePixels: 12,
@@ -370,7 +380,7 @@
             },
             tooltip: {
                 show: true,
-                content: "%x Uhr: %y Wh"
+                content: "%x<br />%y Wh"
             }
         };
 
@@ -397,7 +407,7 @@
         ajaxLoadProfile('/api/loadprofile?format=json');
 
         function gd(isoformat) {
-            return new Date(isoformat).getTime();
+            return new Date(isoformat).getTime()
         }
 
         /**
@@ -408,18 +418,19 @@
         function loadLoadProfile(response) {
             var consumption = response.consumption;
             var supply = response.supply;
-            console.log("Made ajax request");
 
             consumption_values = [];
-            for (var i = 0; i < consumption.length - 1; i++) {
-                consumption_values.push([gd("" + consumption[i].saved_time + ""),
-                    consumption[i + 1].value_sum - consumption[i].value_sum]);
+            for (var i = 1; i < consumption.length; i++) {
+                consumption_values.push(
+                    [gd("" + consumption[i].saved_time + ""),
+                    consumption[i].value_sum - consumption[i-1].value_sum]
+                );
             }
 
             supply_values = [];
-            for (var i = 0; i < supply.length - 1; i++) {
+            for (var i = 1; i < supply.length; i++) {
                 supply_values.push([gd("" + supply[i].saved_time + ""),
-                    supply[i + 1].value_sum - supply[i].value_sum]);
+                    supply[i].value_sum - supply[i-1].value_sum]);
             }
 
             plot.setData([
@@ -440,7 +451,6 @@
                     plot.draw();
                 }
             } else {
-                console.log("Loaded data the first time");
                 plot.setData([consumption_values, supply_values]);
                 plot.setupGrid();
                 plot.draw();

@@ -21,18 +21,21 @@ class Overview:
             'current_month': (date.today() - timedelta(days=30), date.today()),
             'last_month': (date.today() - timedelta(days=60), date.today() - timedelta(days=30))
         }
-        self.start = [self.parse_date(self._filters['start']) if 'start' in self._filters else self.times['now-24']]
-        self.end = [self.parse_date(self._filters['end']) if 'end' in self._filters else self.times['now']]
+        self.start = [self.parse_date(self._filters['start'], False) if 'start' in self._filters else self.times['now-24']]
+        self.end = [self.parse_date(self._filters['end'], True) if 'end' in self._filters else self.times['now']]
         self.timerange = self.start + self.end
         # TODO check for start==end
 
         self.flats = Flat.objects.all()
 
-    def parse_date(self, string):
+    def parse_date(self, string, end):
         """Converts Datestring(DD.MM.YYYY) into date object."""
         try:
             raw = list(map(int, string.split('.')))
-            return datetime(raw[2], raw[1], raw[0], 0, 0, 0, 0)
+            if not end:
+                return datetime(raw[2], raw[1], raw[0], 0, 0, 0, 0)
+            else:
+                return datetime(raw[2], raw[1], raw[0], 23, 59, 59, 0)
         except RuntimeError:
             logger.warning("Expected string format is DD.MM.YYYY. I got %s" % string)
 
