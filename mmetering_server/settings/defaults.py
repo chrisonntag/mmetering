@@ -23,6 +23,7 @@ LOGIN_REDIRECT_URL = 'home'
 INSTALLED_APPS = [
     'mmetering',
     'backend',
+    'mmio',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
