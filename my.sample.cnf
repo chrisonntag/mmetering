@@ -32,4 +32,4 @@ secretkey = <your-unique-key>
 
 [controlboard]
 address = <your-address>
-export-threshold = <integer:percent>
+supply-threshold = <integer:percent>

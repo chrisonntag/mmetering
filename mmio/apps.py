@@ -6,4 +6,4 @@ class MmioConfig(AppConfig):
     verbose_name = 'MMetering IO Board'
 
     def ready(self):
-        from mmio.signals import meterdata_post_save
+        import mmio.signals

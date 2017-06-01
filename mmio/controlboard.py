@@ -1,5 +1,6 @@
 from mmio.ex9055dm import EX9055DM
 
+
 class ControlBoard(EX9055DM):
     def __init__(self, address):
         EX9055DM.__init__(self, address)
