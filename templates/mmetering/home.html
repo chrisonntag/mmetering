@@ -422,9 +422,6 @@
             ajaxLoadProfile('/api/loadprofile?format=json&start=' + start + '&end=' + end + '')
         });
 
-        //noinspection PointlessArithmeticExpressionJS
-        var interval = 1000 * 1 * 60;
-        setInterval(ajaxLoadProfile('/api/loadprofile?format=json'), interval);
         function ajaxLoadProfile(_url) {
             $.ajax({
                 type: 'GET',
@@ -434,6 +431,10 @@
             });
         }
         ajaxLoadProfile('/api/loadprofile?format=json');
+
+        //noinspection PointlessArithmeticExpressionJS
+        var interval = 1000 * 3 * 60;
+        setInterval(function() { ajaxLoadProfile('/api/loadprofile?format=json'); }, interval);
 
         function gd(isoformat) {
             return new Date(isoformat).getTime()
@@ -476,12 +477,14 @@
             if (last_old != null && last_old != undefined) {
                 if (consumption_values[length][0] !== last_old[0]) {
                     console.log("There's new data, redraw the graph");
-                    plot.setData([consumption_values, supply_values]);
+                    plot.setData(data);
                     plot.setupGrid();
                     plot.draw();
+                } else {
+                    console.log("No new data!");
                 }
             } else {
-                plot.setData([consumption_values, supply_values]);
+                plot.setData(data);
                 plot.setupGrid();
                 plot.draw();
             }
