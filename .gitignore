@@ -7,10 +7,12 @@ mmetering/migrations
 docker-compose.yml
 .data/
 /mmetering_server/settings/production.py
-/evcs
+evcs/
+mmio/
 
 ### Celery ###
 celerybeat-schedule.db
+celerybeat.pid
 dump.rdb
 
 ### Python ###

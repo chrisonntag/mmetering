@@ -85,6 +85,10 @@ LOGGING = {
         'mmetering': {
             'handlers': ['file', 'mail_admins'],
             'level': 'ERROR',
+        },
+        'mmio': {
+            'handlers': ['file', 'mail_admins'],
+            'level': 'ERROR',
         }
     }
 }
