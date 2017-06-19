@@ -4,6 +4,7 @@ Driver for the Eastron SDM630 metering device, for communication via the Modbus 
 
 import minimalmodbus
 from django.conf import settings
+from serial.serialutil import SerialException
 import logging
 
 logger = logging.getLogger(__name__)
@@ -55,6 +56,8 @@ class EastronSDM630(minimalmodbus.Instrument):
                     return val
             except (IOError, OSError, ValueError):
                 continue
+            except SerialException as e:
+                logger.error("The used serial port is not available:\n%s" % str(e), exc_info=True)
             except RuntimeError:
                 logger.error(
                     "Couldn't reach the %s device with address %d" % (self.get_modus(), self.get_address()),
