@@ -71,6 +71,10 @@ LOGGING = {
         'mmetering': {
             'handlers': ['file'],
             'level': 'DEBUG',
-        }
+        },
+        'mmio': {
+            'handlers': ['file'],
+            'level': 'DEBUG'
+        },
     }
 }

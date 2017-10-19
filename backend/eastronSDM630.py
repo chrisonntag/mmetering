@@ -4,6 +4,9 @@ Driver for the Eastron SDM630 metering device, for communication via the Modbus 
 
 import minimalmodbus
 from django.conf import settings
+from time import sleep
+from serial.serialutil import SerialException
+from mmetering_server.settings import MODBUS_PORT
 import logging
 
 logger = logging.getLogger(__name__)
@@ -23,8 +26,8 @@ class EastronSDM630(minimalmodbus.Instrument):
 
         if settings.PRODUCTION:
             # port name, slave address (in decimal)
-            minimalmodbus.Instrument.__init__(self, '/dev/ttyUSB0', address)
-            self.serial.timeout = 6.0  # sec
+            minimalmodbus.Instrument.__init__(self, MODBUS_PORT, address)
+            self.serial.timeout = 1.0  # sec
 
     def get_id(self):
         return self.id
@@ -48,18 +51,19 @@ class EastronSDM630(minimalmodbus.Instrument):
         return self.get_register(hexc, 4, length)
 
     def get_register(self, hexc, code, length):
-        while True:
-            try:
-                val = self.read_float(int(hexc, 16), functioncode=code, numberOfRegisters=length)
-                if val is not None:
-                    return val
-            except (IOError, OSError, ValueError):
-                continue
-            except RuntimeError:
-                logger.error(
-                    "Couldn't reach the %s device with address %d" % (self.get_modus(), self.get_address()),
-                    exc_info=True
-                )
+        try:
+            return self.read_float(int(hexc, 16), functioncode=code, numberOfRegisters=length)
+        except (IOError, OSError, ValueError):
+            pass
+        except SerialException as e:
+            logger.error("The used serial port is not available:\n%s" % str(e), exc_info=True)
+        except RuntimeError:
+            logger.error(
+                "Couldn't reach the %s device with address %d" % (self.get_modus(), self.get_address()),
+                exc_info=True
+            )
+        finally:
+            sleep(2)
 
     def get_value(self):
         if settings.PRODUCTION:
