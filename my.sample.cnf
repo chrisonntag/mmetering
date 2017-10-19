@@ -10,6 +10,7 @@ host = <your-host>
 user = <user>
 password = <pass>
 default-character-set = utf8
+modbus-port = <portnameonpc>
 
 [status]
 production = false
