@@ -1,14 +1,22 @@
 import logging
 from datetime import datetime, timedelta, date
-
 from django.db.models import Sum, Count
-
 from mmetering.models import Flat, Meter, MeterData, Activities
 
 logger = logging.getLogger(__name__)
 
 
 class Overview:
+    """Offers database queries based on a given filter.
+
+    This class is meant to be a layer between the Django
+    database backend and the frontend. It offers several
+    methods for representing data to the user.
+
+    Attributes:
+        filters (dict): A dictionary defining start and
+            end with a datetime object
+    """
     def __init__(self, filters):
         self._filters = filters
         self.times = {
@@ -32,19 +40,49 @@ class Overview:
 
     @staticmethod
     def parse_date(string, end):
-        """Converts Datestring(DD.MM.YYYY) into date object."""
+        """Parses a datestring (DD.MM.YYYY) into a datetime object.
+
+        Args:
+            string (str): The string which should be parsed.
+            end (bool): Will set the time to 23:59:59 if True, and
+                to 00:00:00 otherwise.
+
+        Returns:
+            The parsed datetime object.
+
+        Raises:
+            ValueError: If the datestring is not in the desired format
+        """
         try:
             raw = list(map(int, string.split('.')))
             if not end:
                 return datetime(raw[2], raw[1], raw[0], 0, 0, 0, 0)
             else:
                 return datetime(raw[2], raw[1], raw[0], 23, 59, 59, 0)
-        except RuntimeError:
+        except ValueError:
             logger.warning("Expected string format is DD.MM.YYYY. I got %s" % string)
 
     def get_data_range(self, start, end, mode):
+        """Queries the summed up meter values per quarter-hour in a timespan.
+
+        Args:
+             start (datetime): The start of the timespan.
+             end (datetime): The end of the timespan.
+             mode (str): The desired mode of MeterData values,
+                'IM' for Import data and
+                'EX' for Export data.
+
+        Returns:
+            A QuerySet of sum of pairs of value_sum and saved_time::
+                [{
+                    'value_sum': Sum of all meters of type ``mode`` in Wh,
+                    'saved_time': Time of the values
+                }, ...
+                ]
+        """
         data = MeterData.objects.all() \
             .filter(
+            meter__active=True,
             meter__flat__modus__exact=mode,
             saved_time__range=[start, end]
         ) \
@@ -53,25 +91,61 @@ class Overview:
         return data
 
     def get_total(self, until, mode):
-        active_meters = Meter.objects.filter(active=True, flat__modus__exact=mode).count()
+        """Queries the total consumption/supply for each meter until a date.
+
+        Args:
+            until (datetime): The datetime object up to which will be searched.
+            mode (str): The meters mode ('IM': Import, 'EX': Export).
+
+        Returns:
+            A list of summed up values, each representing a meter.
+
+        """
+        active_meters_num = Meter.objects.filter(active=True, flat__modus__exact=mode).count()
         total = MeterData.objects.all() \
             .filter(meter__flat__modus__exact=mode, saved_time__lt=until, meter__active=True) \
-            .values_list('value').order_by('-value')[:active_meters]
+            .values_list('value').order_by('-value')[:active_meters_num]
 
         # get the first value of each tuple
         return [x[0] for x in total]
 
     def get_total_consumption(self, until):
-        total = self.get_total(until, 'IM')
-        return sum(total) / 1000  # /1000 convert to MwH
+        """Queries the total consumption of all meters.
 
-    def get_day_consumption(self, until):
-        day = self.get_total(until, 'IM')
-        day_before = self.get_total(until - timedelta(days=1), 'IM')
+        Args:
+            until (datetime): The datetime object up to which will be searched.
+
+        Returns:
+            The total consumption from all meters with mode 'IM' in MWh.
+        """
+        total = self.get_total(until, 'IM')
+        return sum(total) / 1000  # /1000 convert to MWh
+
+    def get_day_consumption(self, day):
+        """Queries the total consumption in 24h.
+
+        Args:
+            day (datetime): The datetime from which to query the last 24h.
+
+        Returns:
+            The total consumption of the last 24h from all meters with
+            mode 'IM' in kWh.
+        """
+        day = self.get_total(day, 'IM')
+        day_before = self.get_total(day - timedelta(days=1), 'IM')
 
         return sum(day) - sum(day_before)
 
-    def is_supply_over_threshold(self, threshold):
+    def is_supply_over_threshold(self, threshold: float):
+        """Checks if self-produced energy supply is over a specific threshold.
+
+        Args:
+            threshold: The threshold to check on.
+
+        Returns:
+            True if the total of the self-produced energy supply is over
+            the threshold, False otherwise.
+        """
         c_data = self.get_data_range(self.times['now-1'], datetime.today(), 'IM').order_by('-value_sum')[:2]
         s_data = self.get_data_range(self.times['now-1'], datetime.today(), 'EX').order_by('-value_sum')[:2]
 
@@ -91,6 +165,9 @@ class Overview:
 
 
 class LoadProfileOverview(Overview):
+    """Derives from Overview and offers a ```to_dict``` method in order
+    to pass consumption and supply values to the frontend's Load Profile view.
+    """
     def to_dict(self):
         return {
             'consumption': self.get_data_range(self.timerange[0], self.timerange[1], 'IM'),
@@ -99,6 +176,9 @@ class LoadProfileOverview(Overview):
 
 
 class DataOverview(Overview):
+    """Derives from Overview and offers a ```to_dict``` method in oder
+    to pass data values to the frontend's Overview Panel.
+    """
     def to_dict(self):
         return {
             'consumers': Flat.objects.filter(modus='IM').aggregate(num=Count('name')),
@@ -126,6 +206,9 @@ class DataOverview(Overview):
 
 
 class DownloadOverview(Overview):
+    """Derives from Overview and offers a ```get_data``` method in order
+    to offer meter data values for the Download Sheet.
+    """
     def get_data(self):
         num_of_meters = Meter.objects.filter(active=True).count()
         total_splitted = MeterData.objects\
