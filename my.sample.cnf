@@ -6,10 +6,11 @@ city = <yourcity>
 
 [client]
 database = <database>
-host = <your_host>
+host = <your-host>
 user = <user>
 password = <pass>
 default-character-set = utf8
+modbus-port = <portnameonpc>
 
 [status]
 production = false
@@ -22,7 +23,14 @@ ssl = <boolean:ssl>
 tls = <boolean:tls>
 port = <port>
 from = <noreplymail>
-to = <yourmail>
+to =
+    <yourmail>
+    <yoursecondmail>
+    <your-n-th-mail>
 
 [variables]
-secretkey = m3*+bby-mll*jdfhb21*!yv)x+sgga-6d_9he6gt_chcburqzb
+secretkey = <your-unique-key>
+
+[controlboard]
+address = <your-address>
+supply-threshold = <integer:percent>
