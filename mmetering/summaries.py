@@ -121,18 +121,18 @@ class Overview:
         total = self.get_total(until, 'IM')
         return sum(total) / 1000  # /1000 convert to MWh
 
-    def get_day_consumption(self, day):
+    def get_day_consumption(self, until):
         """Queries the total consumption in 24h.
 
         Args:
-            day (datetime): The datetime from which to query the last 24h.
+            until (datetime): The datetime from which to query the last 24h.
 
         Returns:
             The total consumption of the last 24h from all meters with
             mode 'IM' in kWh.
         """
-        day = self.get_total(day, 'IM')
-        day_before = self.get_total(day - timedelta(days=1), 'IM')
+        day = self.get_total(until, 'IM')
+        day_before = self.get_total(until - timedelta(days=1), 'IM')
 
         return sum(day) - sum(day_before)
 
