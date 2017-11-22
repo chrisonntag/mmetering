@@ -55,12 +55,15 @@ class Overview:
         """
         try:
             raw = list(map(int, string.split('.')))
-            if not end:
-                return datetime(raw[2], raw[1], raw[0], 0, 0, 0, 0)
+            if raw[2] > 1000 and 1 <= raw[1] <= 12 and 1 <= raw[0] <= 31:
+                if not end:
+                    return datetime(raw[2], raw[1], raw[0], 0, 0, 0, 0)
+                else:
+                    return datetime(raw[2], raw[1], raw[0], 23, 59, 59, 0)
             else:
-                return datetime(raw[2], raw[1], raw[0], 23, 59, 59, 0)
+                raise ValueError('Days should be between 1 and 31 and months between 1 and 12.')
         except ValueError:
-            logger.warning("Expected string format is DD.MM.YYYY. I got %s" % string)
+            logger.warning('Expected string format is DD.MM.YYYY. I got %s' % string)
 
     def get_data_range(self, start, end, mode):
         """Queries the summed up meter values per quarter-hour in a timespan.
