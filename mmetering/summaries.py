@@ -147,7 +147,7 @@ class Overview:
 
         Returns:
             True if the total of the self-produced energy supply is over
-            the threshold, False otherwise.
+            the threshold, False otherwise or when no data is available.
         """
         c_data = self.get_data_range(self.times['now-1'], datetime.today(), 'IM').order_by('-value_sum')[:2]
         s_data = self.get_data_range(self.times['now-1'], datetime.today(), 'EX').order_by('-value_sum')[:2]
