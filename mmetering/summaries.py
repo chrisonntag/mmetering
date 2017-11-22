@@ -152,9 +152,6 @@ class Overview:
         c_data = self.get_data_range(self.times['now-1'], datetime.today(), 'IM').order_by('-value_sum')[:2]
         s_data = self.get_data_range(self.times['now-1'], datetime.today(), 'EX').order_by('-value_sum')[:2]
 
-        print(c_data)
-        print(s_data)
-
         if c_data and s_data:
             consumption = c_data[0].get('value_sum') - c_data[1].get('value_sum')
             supply = s_data[0].get('value_sum') - s_data[1].get('value_sum')
