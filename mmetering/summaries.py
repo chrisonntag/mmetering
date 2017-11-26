@@ -85,7 +85,6 @@ class Overview:
         """
         data = MeterData.objects.all() \
             .filter(
-            meter__active=True,
             meter__flat__modus__exact=mode,
             saved_time__range=[start, end]
         ) \
@@ -103,14 +102,15 @@ class Overview:
         Returns:
             A list of summed up values, each representing a meter.
 
-        """
-        active_meters_num = Meter.objects.filter(active=True, flat__modus__exact=mode).count()
-        total = MeterData.objects.all() \
-            .filter(meter__flat__modus__exact=mode, saved_time__lt=until, meter__active=True) \
-            .values_list('value').order_by('-value')[:active_meters_num]
+       """
+        meters = [x.pk for x in Meter.objects.filter(flat__modus=mode)]
+        values_until = []
+        for meter in meters:
+            values_until.append(
+                MeterData.objects.filter(meter__pk=meter, saved_time__lt=until).order_by('-pk')[0].value
+            )
 
-        # get the first value of each tuple
-        return [x[0] for x in total]
+        return values_until
 
     def get_total_consumption(self, until):
         """Queries the total consumption of all meters.
@@ -122,7 +122,7 @@ class Overview:
             The total consumption from all meters with mode 'IM' in MWh.
         """
         total = self.get_total(until, 'IM')
-        return sum(total) / 1000  # /1000 convert to MWh
+        return sum(total) / 1000  # convert database kWh values into MWh
 
     def get_day_consumption(self, until):
         """Queries the total consumption in 24h.
@@ -190,7 +190,7 @@ class DataOverview(Overview):
             'suppliers': Flat.objects.filter(modus='EX').aggregate(num=Count('name')),
             'active_suppliers': Meter.objects.filter(flat__modus='EX', active=True).aggregate(num=Count('addresse')),
             'consumption': {
-                'total': self.get_total_consumption(date.today()),
+                'total': self.get_total_consumption(datetime.today()),
                 'total_last_week': self.get_total_consumption(self.times['last_week'][1]),
                 'unit': 'MWh'
             },
@@ -214,14 +214,18 @@ class DownloadOverview(Overview):
     to offer meter data values for the Download Sheet.
     """
     def get_data(self):
-        num_of_meters = Meter.objects.filter(active=True).count()
-        total_splitted = MeterData.objects\
-            .filter(meter__active=True, saved_time__lte=self.end[0])\
-            .values_list('meter__seriennummer', 'meter__flat__name', 'value', 'saved_time')\
-            .order_by('-saved_time')[num_of_meters:num_of_meters * 2]
+        flats = [x.pk for x in Flat.objects.filter(modus='IM')]
+        latest_values = []
+        for flat in flats:
+            val = MeterData.objects.filter(
+                meter__flat__pk=flat, saved_time__lte=self.end[0]
+            ).values_list(
+                'meter__seriennummer',
+                'meter__flat__name',
+                'value',
+                'saved_time'
+            ).order_by('-pk')[0]
 
-        total = []
-        for flat in total_splitted:
-            total.append(flat)
+            latest_values.append(val)
 
-        return total
+        return latest_values
