@@ -92,3 +92,10 @@ LOGGING = {
         }
     }
 }
+
+"""
+MMetering Plugin Section
+
+Add plugins to INSTALLED_APPS here, more info regarding
+apps on http://www.github.com/mmetering
+"""

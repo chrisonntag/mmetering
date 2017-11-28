@@ -26,7 +26,24 @@ def send_contact_email(name, email, message):
         headers={'Reply-To': email}
     )
 
-    logger.info("User sent the contact form")
+    logger.info("User sent the contact form.")
+    return email.send(fail_silently=False)
+
+
+def send_system_email(message):
+    c = Context({'message': message})
+
+    email_subject = render_to_string(
+        'mmetering/email/email_system_subject.txt', c).replace('\n', '')
+    email_body = render_to_string('mmetering/email/email_system_body.txt', c)
+
+    # settings.DEFAULT_TO_EMAIL already is a list
+    email = EmailMessage(
+        email_subject, email_body, 'system@mmetering.chrisonntag.com',
+        settings.DEFAULT_TO_EMAIL, []
+    )
+
+    logger.info("MMetering System sent a mail.")
     return email.send(fail_silently=False)
 
 
@@ -72,5 +89,5 @@ def send_attachment_email():
                      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
         excel_file.close()
 
-    logger.info("Send mail with current meter data")
+    logger.info("MMetering System sent a mail with current meter data.")
     return email.send(fail_silently=False)

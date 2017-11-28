@@ -1,0 +1,8 @@
+Dies ist eine automatisch generierte Nachricht, bitte antworten Sie nicht an diese E-Mail-Adresse.
+Sollten Sie weitere Fragen zur Erfassung der Daten oder einen Fehler gefunden haben,
+wenden Sie sich bitte an den Systemadministrator.
+
+{{message}}
+
+------
+MMetering
