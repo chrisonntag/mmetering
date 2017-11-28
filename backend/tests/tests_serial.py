@@ -7,5 +7,5 @@ class SerialTestCase(TestCase):
     fixtures = ['mmetering_models_testdata.json']
 
     def test_data(self):
-        self.assertEqual(Flat.objects.count(), 4, "Create 4 meters")
-        self.assertEqual(Meter.objects.count(), 4, "Create 4 meters")
+        self.assertEqual(Flat.objects.count(), 6)
+        self.assertEqual(Meter.objects.count(), 6)

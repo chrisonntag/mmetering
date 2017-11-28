@@ -13,6 +13,21 @@ SECRET_KEY = config.get('variables', 'secretkey')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
+# Application definition
+# Add plugins to INSTALLED_APPS here, more info regarding
+# apps on http://www.github.com/mmetering
+INSTALLED_APPS = [
+    'mmetering',
+    'backend',
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'rest_framework',
+]
+
 ALLOWED_HOSTS = [
     'domain.example.com',
 ]
@@ -92,10 +107,3 @@ LOGGING = {
         }
     }
 }
-
-"""
-MMetering Plugin Section
-
-Add plugins to INSTALLED_APPS here, more info regarding
-apps on http://www.github.com/mmetering
-"""

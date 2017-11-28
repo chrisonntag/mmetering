@@ -10,6 +10,19 @@ config.read(os.path.join(BASE_DIR, 'my.cnf'))
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'pcawgi2s$v5k+%r4uzti&bqj%fe1g+o=7^0bwq-hdav-h+)5)6'
 
+# Application definition
+INSTALLED_APPS = [
+    'mmetering',
+    'backend',
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'rest_framework',
+]
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 

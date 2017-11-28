@@ -85,7 +85,7 @@ class EmailTaskTest(TestCase):
         self.assertTrue(sent_mail.successful())
 
     def test_system_mail(self):
-        sent_mail = send_system_email_task.delay('Test Subject', 'Test\nRegards')
+        sent_mail = send_system_email_task.delay('Test\nRegards')
 
         self.assertEqual(len(mail.outbox), 1)
         self.assertTrue(sent_mail.successful())
