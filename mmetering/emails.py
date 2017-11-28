@@ -30,11 +30,12 @@ def send_contact_email(name, email, message):
     return email.send(fail_silently=False)
 
 
-def send_system_email(subject, message):
-    c = Context({'name': 'MMetering', 'message': message})
+def send_system_email(message):
+    c = Context({'message': message})
 
-    email_subject = subject
-    email_body = render_to_string('mmetering/email/email_body.txt', c)
+    email_subject = render_to_string(
+        'mmetering/email/email_system_subject.txt', c).replace('\n', '')
+    email_body = render_to_string('mmetering/email/email_system_body.txt', c)
 
     # settings.DEFAULT_TO_EMAIL already is a list
     email = EmailMessage(

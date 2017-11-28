@@ -15,7 +15,7 @@ def send_contact_email_task(name, email, message):
 
 
 @task(name='send_system_email_task')
-def send_system_email_task(subject, message):
+def send_system_email_task(message):
     """Sends a mail from the system."""
     logger.info("Send system email...")
-    return send_system_email(subject, message)
+    return send_system_email(message)
