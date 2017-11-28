@@ -10,6 +10,7 @@ django-filter==1.0.1
 django-mathfilters==0.4.0
 djangorestframework==3.5.3
 docutils==0.13.1
+freezegun==0.3.9
 imagesize==0.7.1
 Jinja2==2.9.5
 kombu==4.0.2
