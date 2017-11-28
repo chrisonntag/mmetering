@@ -106,9 +106,12 @@ class Overview:
         meters = [x.pk for x in Meter.objects.filter(flat__modus=mode)]
         values_until = []
         for meter in meters:
-            values_until.append(
-                MeterData.objects.filter(meter__pk=meter, saved_time__lt=until).order_by('-pk')[0].value
-            )
+            try:
+                values_until.append(
+                    MeterData.objects.filter(meter__pk=meter, saved_time__lt=until).order_by('-pk')[0].value
+                )
+            except IndexError:
+                logger.info('The requested meter has no values yet.')
 
         return values_until
 
@@ -217,15 +220,18 @@ class DownloadOverview(Overview):
         flats = [x.pk for x in Flat.objects.filter(modus='IM')]
         latest_values = []
         for flat in flats:
-            val = MeterData.objects.filter(
-                meter__flat__pk=flat, saved_time__lte=self.end[0]
-            ).values_list(
-                'meter__seriennummer',
-                'meter__flat__name',
-                'value',
-                'saved_time'
-            ).order_by('-pk')[0]
+            try:
+                val = MeterData.objects.filter(
+                    meter__flat__pk=flat, saved_time__lte=self.end[0]
+                ).values_list(
+                    'meter__seriennummer',
+                    'meter__flat__name',
+                    'value',
+                    'saved_time'
+                ).order_by('-pk')[0]
 
-            latest_values.append(val)
+                latest_values.append(val)
+            except IndexError:
+                logger.info('The requested meter has no values yet.')
 
         return latest_values
