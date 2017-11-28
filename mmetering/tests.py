@@ -1,5 +1,8 @@
 from django.test import TestCase
+from django.test.utils import override_settings
+from django.core import mail
 from mmetering.summaries import Overview
+from mmetering.tasks import send_contact_email_task
 from datetime import datetime
 from freezegun import freeze_time
 
@@ -69,3 +72,14 @@ class SummariesDataTest(TestCase):
 
             # return False if no data is available
             self.assertFalse(data.is_supply_over_threshold(0.7))
+
+
+class EmailTaskTest(TestCase):
+    @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,
+                       CELERY_ALWAYS_EAGER=True,
+                       BROKER_BACKEND='memory')
+    def test_contact_mail(self):
+        sent_mail = send_contact_email_task.delay('John Doe', 'john@mmetering.chrisonntag.com', 'Test\nRegards')
+
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertTrue(sent_mail.successful())
