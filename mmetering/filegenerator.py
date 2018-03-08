@@ -44,7 +44,8 @@ class XLS(File):
 
     def get_file(self):
         output = io.BytesIO()
-        data = DownloadOverview(self._request.GET).get_data()
+        import_data, export_data = DownloadOverview(self._request.GET).get_data()
+        data = import_data + export_data
 
         workbook = xlsxwriter.Workbook(output, {'in_memory': True})
         worksheet = workbook.add_worksheet()
@@ -65,8 +66,13 @@ class XLS(File):
 
         for i in range(0, len(data)):
             for j in range(0, len(data[i])):
-                # worksheet.write(zeile, spalte, wert)
-                worksheet.write(i + 3, j, data[i][j])
+                # worksheet.write(row, column, content)
+                if j == 3:
+                    # provided the fourth value is the datetime
+                    # TODO: make that more dynamically
+                    worksheet.write(i + 3, j, data[i][j], time)
+                else:
+                    worksheet.write(i + 3, j, data[i][j])
 
         workbook.close()
         output.seek(0)

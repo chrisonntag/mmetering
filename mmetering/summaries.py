@@ -217,21 +217,43 @@ class DownloadOverview(Overview):
     to offer meter data values for the Download Sheet.
     """
     def get_data(self):
-        flats = [x.pk for x in Flat.objects.filter(modus='IM')]
-        latest_values = []
+        flats = [x.pk for x in Flat.objects.all().order_by('name')]
+        import_values = []
+        export_values = []
+
         for flat in flats:
             try:
-                val = MeterData.objects.filter(
-                    meter__flat__pk=flat, saved_time__lte=self.end[0]
-                ).values_list(
+                meter_data_object = MeterData.objects.filter(
+                    meter__flat__pk=flat, saved_time__lte=self.end[0])
+
+                value = meter_data_object.values_list(
                     'meter__seriennummer',
                     'meter__flat__name',
                     'value',
                     'saved_time'
                 ).order_by('-pk')[0]
 
-                latest_values.append(val)
+                value += self.get_extended_meter_data(flat)
+
+                if meter_data_object[0].get_mode() == 'IM':
+                    import_values.append(value)
+                else:
+                    export_values.append(value)
             except IndexError:
                 logger.info('The requested meter has no values yet.')
 
-        return latest_values
+        return import_values, export_values
+
+    def get_extended_meter_data(self, pk):
+        """
+        Gathers further information for a given flat which
+        is not contained in a MeterData object.
+
+        :param pk: The pk of the flat.
+        :return: A n-tuple.
+        """
+        last_month_value = MeterData.objects.filter(
+            meter__flat__pk=pk, saved_time__lte=self.end[0] - timedelta(days=30)
+        ).order_by('-pk')[0].value
+
+        return 1, 2, 3, 4, last_month_value

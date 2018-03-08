@@ -62,6 +62,9 @@ class MeterData(models.Model):
     def __str__(self):
         return "Datenwert für " + self.meter.flat.name
 
+    def get_mode(self):
+        return self.meter.flat.modus
+
     class Meta:
         permissions = (
             ("can_download", "Can download MeterData"),
