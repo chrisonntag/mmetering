@@ -45,7 +45,7 @@ class XLS(File):
     def get_file(self):
         output = io.BytesIO()
         import_data, export_data = DownloadOverview(self._request.GET).get_data()
-        data = import_data + export_data
+        data = import_data + [('', '')] + export_data
 
         workbook = xlsxwriter.Workbook(output, {'in_memory': True})
         worksheet = workbook.add_worksheet()
