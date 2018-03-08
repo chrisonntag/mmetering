@@ -52,21 +52,21 @@ class XLS(File):
         bold = workbook.add_format({'bold': True})
         time = workbook.add_format({'num_format': 'dd.mm.yy hh:mm'})
         # Widen the first column to make the text clearer.
-        worksheet.set_column('B:B', 12)
-        worksheet.set_column('C:C', 15)
-        worksheet.set_column('D:D', 12)
-        worksheet.set_column('E:E', 12)
-        worksheet.write('B2', 'SN', bold)
-        worksheet.write('C2', 'Bezug', bold)
-        worksheet.write('D2', 'Zaehlerstand', bold)
-        worksheet.write('E2', 'Uhrzeit', bold)
+        worksheet.set_column(0, 9, width=15)
+
+        table_headers = [('SN', ''), ('Bezug', ''), ('Zaehlerstand', 'kWh'), ('Uhrzeit', ''),
+                         ('Gesamtverbrauch', 'kWh'), ('Anteil Versorger', 'kWh'), ('Anteil PV', 'kWh'),
+                         ('Anteil BHKW', 'kWh'), ('Vormonat', 'kWh')]
+
+        for i in range(0, 9):
+            worksheet.write(0, i, table_headers[i][0], bold)
+            if table_headers[i][1]:
+                worksheet.write(1, i, '[%s]' % table_headers[i][1])
 
         for i in range(0, len(data)):
-            # worksheet.write(zeile, spalte, wert)
-            worksheet.write(i + 3, 1, data[i][0])
-            worksheet.write(i + 3, 2, data[i][1])
-            worksheet.write(i + 3, 3, data[i][2])
-            worksheet.write(i + 3, 4, data[i][3], time)
+            for j in range(0, len(data[i])):
+                # worksheet.write(zeile, spalte, wert)
+                worksheet.write(i + 3, j, data[i][j])
 
         workbook.close()
         output.seek(0)
