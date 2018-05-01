@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.db import models
+from datetime import timedelta
 
 
 class Flat(models.Model):
@@ -56,7 +57,7 @@ class Meter(models.Model):
 
 class MeterData(models.Model):
     meter = models.ForeignKey(Meter, on_delete=models.CASCADE)
-    saved_time = models.DateTimeField()
+    saved_time = models.DateTimeField(db_index=True)
     value = models.FloatField()
 
     def __str__(self):
@@ -64,6 +65,14 @@ class MeterData(models.Model):
 
     def get_mode(self):
         return self.meter.flat.modus
+
+    def get_consumption(self, delta):
+        pre = MeterData.objects.filter(meter=self.meter, saved_time=self.saved_time - delta).exists()
+        if pre:
+            pre_val = MeterData.objects.get(meter=self.meter, saved_time=self.saved_time - delta).value
+            return self.value - pre_val
+        else:
+            return self.value
 
     class Meta:
         permissions = (

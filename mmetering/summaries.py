@@ -216,6 +216,8 @@ class DownloadOverview(Overview):
     """Derives from Overview and offers a ```get_data``` method in order
     to offer meter data values for the Download Sheet.
     """
+    NO_DATA = 0
+
     def get_data(self):
         flats = [x.pk for x in Flat.objects.all().order_by('name')]
         import_values = []
@@ -224,21 +226,33 @@ class DownloadOverview(Overview):
         for flat in flats:
             try:
                 meter_data_object = MeterData.objects.filter(
-                    meter__flat__pk=flat, saved_time__lte=self.end[0])
+                    meter__flat__pk=flat, saved_time__lte=self.end[0]).order_by('-pk')
 
-                value = meter_data_object.values_list(
-                    'meter__seriennummer',
-                    'meter__flat__name',
-                    'value',
-                    'saved_time'
-                ).order_by('-pk')[0]
+                if meter_data_object.exists():
+                    meter_data_object = meter_data_object.first()
+                    value = (
+                        meter_data_object.meter.seriennummer,
+                        meter_data_object.meter.flat.name,
+                        meter_data_object.value,
+                        meter_data_object.saved_time,
+                    )
+                    print("\n")
+                    print("Processing %s..." % meter_data_object.meter.flat.name)
 
-                value += self.get_extended_meter_data(flat)
+                    """
+                    value = meter_data_object.values_list(
+                        'meter__seriennummer',
+                        'meter__flat__name',
+                        'value',
+                        'saved_time'
+                    )
+                    """
 
-                if meter_data_object[0].get_mode() == 'IM':
-                    import_values.append(value)
-                else:
-                    export_values.append(value)
+                    if meter_data_object.get_mode() == 'IM':
+                        value += self.get_extended_meter_data(flat)
+                        import_values.append(value)
+                    else:
+                        export_values.append(value)
             except IndexError:
                 logger.info('The requested meter has no values yet.')
 
@@ -250,10 +264,60 @@ class DownloadOverview(Overview):
         is not contained in a MeterData object.
 
         :param pk: The pk of the flat.
-        :return: A n-tuple.
+        :return: A 5-tuple.
         """
-        last_month_value = MeterData.objects.filter(
-            meter__flat__pk=pk, saved_time__lte=self.end[0] - timedelta(days=30)
-        ).order_by('-pk')[0].value
+        ordered_values = MeterData.objects.filter(meter__flat__pk=pk,
+                                                  saved_time__year='2018', saved_time__month='02').order_by('-saved_time')
+        ordered_last_month = MeterData.objects.filter(meter__flat__pk=pk,
+                                                      saved_time__year='2018', saved_time__month='01').order_by('-saved_time')
 
-        return 1, 2, 3, 4, last_month_value
+        print("%d saved meter values" % ordered_values.count())
+        print("%d the month before" % ordered_last_month.count())
+
+        # TODO: Change this static shit please
+        bhkw = MeterData.objects.filter(meter__flat__name='BKHW Erzeugung', saved_time__year='2018', saved_time__month='02').order_by('-saved_time')
+        pv = MeterData.objects.filter(meter__flat__name='PV Erzeugung', saved_time__year='2018', saved_time__month='02').order_by('-saved_time')
+
+        print("Corresponding %d values for BHKW and %d for the PV system" % (bhkw.count(), pv.count()))
+
+        current_value = ordered_values[0].value if ordered_values.count() > 0 else DownloadOverview.NO_DATA
+        last_month_value = ordered_last_month[0].value if ordered_last_month.count() > 0 else DownloadOverview.NO_DATA
+
+        print("Value this month/the last: %f/%f" % (current_value, last_month_value))
+
+        part_pv = 0
+        part_bhkw = 0
+        part_distributor = 0
+        consumption = DownloadOverview.NO_DATA
+
+        if current_value is not DownloadOverview.NO_DATA and last_month_value is not DownloadOverview.NO_DATA:
+            consumption = current_value - last_month_value
+            print("Consumption: %f" % consumption)
+
+            for val_m, val_bhkw, val_pv in list(zip(
+                ordered_values.values_list('meter__pk', 'saved_time', 'value'),
+                bhkw.values_list('meter__pk', 'saved_time', 'value'),
+                pv.values_list('meter__pk', 'saved_time', 'value')
+            )):
+                coeff = self.get_consumption(val_m, timedelta(minutes=15)) / self.get_total_consumption_at(val_m[1])
+                part_bhkw += coeff * self.get_consumption(val_bhkw, timedelta(minutes=15))
+                part_pv += coeff * self.get_consumption(val_pv, timedelta(minutes=15))
+                print("Process timeslot %s with coeff %f" % (val_m[1], coeff))
+
+            # TODO: no valid operation in case of no data available (consumption == str)
+            part_distributor = consumption - part_bhkw - part_pv
+
+        return consumption, part_distributor, part_pv, part_bhkw, last_month_value
+
+    def get_total_consumption_at(self, time):
+        time_vals = MeterData.objects.filter(saved_time=time, meter__flat__modus__exact='IM')
+        return sum([x.get_consumption(timedelta(minutes=15)) for x in time_vals])
+
+    @staticmethod
+    def get_consumption(meter_data, delta):
+        pre = MeterData.objects.filter(meter__pk=meter_data[0], saved_time=meter_data[1] - delta).exists()
+        if pre:
+            pre_val = MeterData.objects.get(meter__pk=meter_data[0], saved_time=meter_data[1] - delta).value
+            return meter_data[2] - pre_val
+        else:
+            return meter_data[2]
