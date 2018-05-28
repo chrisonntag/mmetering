@@ -2,6 +2,9 @@ import logging
 from datetime import datetime, timedelta, date
 from django.db.models import Sum, Count
 from mmetering.models import Flat, Meter, MeterData, Activities
+from collections import defaultdict
+from itertools import chain
+from functools import reduce
 
 logger = logging.getLogger(__name__)
 
@@ -216,49 +219,106 @@ class DownloadOverview(Overview):
     """Derives from Overview and offers a ```get_data``` method in order
     to offer meter data values for the Download Sheet.
     """
-    NO_DATA = 0
+    NO_DATA = 'keine Daten'
 
     def get_data(self):
         flats = [x.pk for x in Flat.objects.all().order_by('name')]
         import_values = []
         export_values = []
+        consumption = {}
+        production = {}
 
         for flat in flats:
+            flat_object = Flat.objects.get(pk=flat)
+            meter_data_object = MeterData.objects.filter(
+                    meter__flat__pk=flat,
+                    saved_time__year=self.end[0].year,
+                    saved_time__month=self.end[0].month
+            ).order_by('-pk')
+
+            value = {
+                'ID': DownloadOverview.NO_DATA,
+                'Bezug': DownloadOverview.NO_DATA,
+                'SN': DownloadOverview.NO_DATA,
+                'Zaehlerstand': DownloadOverview.NO_DATA,
+                'Uhrzeit': DownloadOverview.NO_DATA,
+            }
+
+            if meter_data_object.exists():
+                current_month_exists = True
+                meter_data_object = meter_data_object.first()
+                value = {
+                    'ID': meter_data_object.meter.flat.pk,
+                    'Bezug': meter_data_object.meter.flat.name,
+                    'SN': meter_data_object.meter.seriennummer,
+                    'Zaehlerstand': meter_data_object.value,
+                    'Uhrzeit': meter_data_object.saved_time,
+                }
+            else:
+                current_month_exists = False
+                flat_object = Flat.objects.get(pk=flat)
+                value['ID'] = flat
+                value['Bezug'] = flat_object.name
+
+            if flat_object.modus == 'IM':
+                if current_month_exists:
+                    consumption[flat] = DownloadOverview.get_consumption(flat, self.end[0])
+                import_values.append(value)
+            else:
+                if current_month_exists:
+                    production[flat] = DownloadOverview.get_consumption(flat, self.end[0])
+                export_values.append(value)
+
+        print("Total consumption-meters in list: %d" % len(consumption))
+        print("Export meters: %d" % len(export_values))
+
+        # Calculate the total consumption for each timeslot
+        total_consumption = defaultdict(float)
+        for el in list(chain.from_iterable(consumption.values())):  # flattens the dictionary to a list
+            total_consumption[el['saved_time']] += el['value']
+
+        # Extend import data
+        for i in range(0, len(import_values)):
+            pk = import_values[i]['ID']
+            meter_value = import_values[i]['Zaehlerstand']
+            # TODO: fix this
             try:
-                meter_data_object = MeterData.objects.filter(
-                    meter__flat__pk=flat, saved_time__lte=self.end[0]).order_by('-pk')
-
-                if meter_data_object.exists():
-                    meter_data_object = meter_data_object.first()
-                    value = (
-                        meter_data_object.meter.seriennummer,
-                        meter_data_object.meter.flat.name,
-                        meter_data_object.value,
-                        meter_data_object.saved_time,
-                    )
-                    print("\n")
-                    print("Processing %s..." % meter_data_object.meter.flat.name)
-
-                    """
-                    value = meter_data_object.values_list(
-                        'meter__seriennummer',
-                        'meter__flat__name',
-                        'value',
-                        'saved_time'
-                    )
-                    """
-
-                    if meter_data_object.get_mode() == 'IM':
-                        value += self.get_extended_meter_data(flat)
-                        import_values.append(value)
-                    else:
-                        export_values.append(value)
-            except IndexError:
-                logger.info('The requested meter has no values yet.')
+                import_values[i].update(self.get_extended_meter_data(pk, total_consumption, production, consumption[pk], meter_value))
+            except KeyError:
+                logger.info('No data')
 
         return import_values, export_values
 
-    def get_extended_meter_data(self, pk):
+    @staticmethod
+    def get_next_value(meter_pk, saved_time):
+        next_value = MeterData.objects\
+            .filter(meter__flat__pk=meter_pk, saved_time=saved_time + timedelta(minutes=15)).values('saved_time', 'value')
+        if len(next_value) > 0:
+            return next_value[0]
+
+    @staticmethod
+    def get_consumption(meter_pk, timerange):
+        time_series = MeterData.objects \
+            .filter(meter__flat__pk=meter_pk, saved_time__year=timerange.year, saved_time__month=timerange.month) \
+            .values('saved_time', 'value')
+        time_series = list(time_series)
+        if len(time_series) > 0:
+            # Add the first element of the next month in order to get the consumption
+            last_item = time_series[len(time_series) - 1]
+            time_series.append(DownloadOverview.get_next_value(meter_pk, last_item['saved_time']))
+
+            for i in range(0, len(time_series) - 1):
+                value = time_series[i]
+                delta_value = time_series[i+1]
+                # TODO: Check for NoneType
+                consumption = {'value': delta_value['value'] - value['value'], 'saved_time': delta_value['saved_time']}
+                time_series[i] = consumption
+
+            # Remove the last element
+            time_series.pop()
+            return time_series
+
+    def get_extended_meter_data(self, pk, total_consumption, production_values, consumption_values, meter_value):
         """
         Gathers further information for a given flat which
         is not contained in a MeterData object.
@@ -266,58 +326,37 @@ class DownloadOverview(Overview):
         :param pk: The pk of the flat.
         :return: A 5-tuple.
         """
-        ordered_values = MeterData.objects.filter(meter__flat__pk=pk,
-                                                  saved_time__year='2018', saved_time__month='02').order_by('-saved_time')
-        ordered_last_month = MeterData.objects.filter(meter__flat__pk=pk,
-                                                      saved_time__year='2018', saved_time__month='01').order_by('-saved_time')
+        last_month = self.end[0].replace(day=1) - timedelta(days=1)
+        last_month_values = MeterData.objects.filter(
+            meter__flat__pk=pk,
+            saved_time__month=last_month.month,
+            saved_time__year=last_month.year).order_by('-saved_time')
 
-        print("%d saved meter values" % ordered_values.count())
-        print("%d the month before" % ordered_last_month.count())
-
-        # TODO: Change this static shit please
-        bhkw = MeterData.objects.filter(meter__flat__name='BKHW Erzeugung', saved_time__year='2018', saved_time__month='02').order_by('-saved_time')
-        pv = MeterData.objects.filter(meter__flat__name='PV Erzeugung', saved_time__year='2018', saved_time__month='02').order_by('-saved_time')
-
-        print("Corresponding %d values for BHKW and %d for the PV system" % (bhkw.count(), pv.count()))
-
-        current_value = ordered_values[0].value if ordered_values.count() > 0 else DownloadOverview.NO_DATA
-        last_month_value = ordered_last_month[0].value if ordered_last_month.count() > 0 else DownloadOverview.NO_DATA
-
-        print("Value this month/the last: %f/%f" % (current_value, last_month_value))
-
-        part_pv = 0
-        part_bhkw = 0
-        part_distributor = 0
-        consumption = DownloadOverview.NO_DATA
-
-        if current_value is not DownloadOverview.NO_DATA and last_month_value is not DownloadOverview.NO_DATA:
-            consumption = current_value - last_month_value
-            print("Consumption: %f" % consumption)
-
-            for val_m, val_bhkw, val_pv in list(zip(
-                ordered_values.values_list('meter__pk', 'saved_time', 'value'),
-                bhkw.values_list('meter__pk', 'saved_time', 'value'),
-                pv.values_list('meter__pk', 'saved_time', 'value')
-            )):
-                coeff = self.get_consumption(val_m, timedelta(minutes=15)) / self.get_total_consumption_at(val_m[1])
-                part_bhkw += coeff * self.get_consumption(val_bhkw, timedelta(minutes=15))
-                part_pv += coeff * self.get_consumption(val_pv, timedelta(minutes=15))
-                print("Process timeslot %s with coeff %f" % (val_m[1], coeff))
-
-            # TODO: no valid operation in case of no data available (consumption == str)
-            part_distributor = consumption - part_bhkw - part_pv
-
-        return consumption, part_distributor, part_pv, part_bhkw, last_month_value
-
-    def get_total_consumption_at(self, time):
-        time_vals = MeterData.objects.filter(saved_time=time, meter__flat__modus__exact='IM')
-        return sum([x.get_consumption(timedelta(minutes=15)) for x in time_vals])
-
-    @staticmethod
-    def get_consumption(meter_data, delta):
-        pre = MeterData.objects.filter(meter__pk=meter_data[0], saved_time=meter_data[1] - delta).exists()
-        if pre:
-            pre_val = MeterData.objects.get(meter__pk=meter_data[0], saved_time=meter_data[1] - delta).value
-            return meter_data[2] - pre_val
+        if last_month_values.exists():
+            last_month_value = last_month_values.first().value
         else:
-            return meter_data[2]
+            last_month_value = 0
+
+        production_parts = dict.fromkeys(production_values, 0.0)
+        consumption = meter_value - last_month_value
+        print("Consumption: %f" % consumption)
+
+        for el in consumption_values:
+            saved_time = el['saved_time']
+            value = el['value']
+
+            coeff = value / total_consumption[saved_time]
+            for key in production_values.keys():
+                production_value = list(filter(lambda x: x['saved_time'] == saved_time, production_values[key]))
+                if len(production_value) > 0:
+                    production_parts[key] += coeff * production_value[0]['value']
+
+        part_distributor = consumption - reduce(lambda x, y: x - y, production_parts.values())
+        result = {'Vormonat': last_month_value, 'Verbrauch': consumption, 'Anteil Versorger': part_distributor}
+        for key in production_parts.keys():
+            name = Flat.objects.get(pk=key).name
+            result[name] = production_parts[key]
+
+        print(production_parts)
+        return result
+

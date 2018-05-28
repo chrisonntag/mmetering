@@ -45,34 +45,47 @@ class XLS(File):
     def get_file(self):
         output = io.BytesIO()
         import_data, export_data = DownloadOverview(self._request.GET).get_data()
-        data = import_data + [('', '')] + export_data
+        data = import_data + [{}] + export_data
+
+        assert len(import_data) > 0
+        assert len(export_data) > 0
+
+        print("Import data:")
+        print(import_data)
+        print("Export data:")
+        print(export_data)
 
         workbook = xlsxwriter.Workbook(output, {'in_memory': True})
-        worksheet = workbook.add_worksheet()
+        worksheet = workbook.add_worksheet('Abrechnung')
 
         bold = workbook.add_format({'bold': True})
-        time = workbook.add_format({'num_format': 'dd.mm.yy hh:mm'})
-        # Widen the first column to make the text clearer.
+        dateformat = workbook.add_format({'num_format': 'dd.mm.yy hh:mm'})
+        # Widen the first column in order to make the text clearer.
         worksheet.set_column(0, 9, width=15)
 
-        table_headers = [('SN', ''), ('Bezug', ''), ('Zaehlerstand', 'kWh'), ('Uhrzeit', ''),
-                         ('Gesamtverbrauch', 'kWh'), ('Anteil Versorger', 'kWh'), ('Anteil PV', 'kWh'),
-                         ('Anteil BHKW', 'kWh'), ('Vormonat', 'kWh')]
+        # TODO: get headers from import_data dictionaries
+        longest_header = max(import_data, key=len)
+        table_headers = list(longest_header.keys())
+        """
+        [('PK', ''), ('SN', ''), ('Bezug', ''), ('Zaehlerstand', 'kWh'), ('Uhrzeit', ''),
+        ('Gesamtverbrauch', 'kWh'), ('Anteil Versorger', 'kWh'), ('Anteil PV', 'kWh'),
+        ('Anteil BHKW', 'kWh'), ('Vormonat', 'kWh')]
+        """
 
-        for i in range(0, 9):
-            worksheet.write(0, i, table_headers[i][0], bold)
-            if table_headers[i][1]:
-                worksheet.write(1, i, '[%s]' % table_headers[i][1])
+        for i, header in enumerate(table_headers):
+            worksheet.write(0, i, header, bold)
 
-        for i in range(0, len(data)):
-            for j in range(0, len(data[i])):
-                # worksheet.write(row, column, content)
-                if j == 3:
-                    # provided the fourth value is the datetime
+        for row, record in enumerate(data):
+            row += 2  # move everything two rows downwards
+            column = 0
+            for key, value in record.items():
+                if key == 'Uhrzeit':
                     # TODO: make that more dynamically
-                    worksheet.write(i + 3, j, data[i][j], time)
+                    worksheet.write(row, column, value, dateformat)
                 else:
-                    worksheet.write(i + 3, j, data[i][j])
+                    worksheet.write(row, column, value)
+
+                column += 1
 
         workbook.close()
         output.seek(0)
