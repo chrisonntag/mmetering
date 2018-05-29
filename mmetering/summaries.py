@@ -274,8 +274,9 @@ class DownloadOverview(Overview):
 
         # Calculate the total consumption for each timeslot
         total_consumption = defaultdict(float)
-        for el in list(chain.from_iterable(consumption.values())):  # flattens the dictionary to a list
-            total_consumption[el['saved_time']] += el['value']
+        for flat in consumption:
+            for timeslot in consumption[flat]:
+                total_consumption[timeslot] += consumption[flat][timeslot]
 
         # Extend import data
         for i in range(0, len(import_values)):
@@ -307,16 +308,28 @@ class DownloadOverview(Overview):
             last_item = time_series[len(time_series) - 1]
             time_series.append(DownloadOverview.get_next_value(meter_pk, last_item['saved_time']))
 
+            consumption_series = dict()
+
             for i in range(0, len(time_series) - 1):
                 value = time_series[i]
                 delta_value = time_series[i+1]
                 # TODO: Check for NoneType
-                consumption = {'value': delta_value['value'] - value['value'], 'saved_time': delta_value['saved_time']}
-                time_series[i] = consumption
+                consumption_series[delta_value['saved_time']] = delta_value['value'] - value['value']
 
             # Remove the last element
             time_series.pop()
-            return time_series
+            return consumption_series
+
+    def get_similar_time(self, dictionary, timeslot, threshold=2):
+        # TODO: Definitely fix this
+        times = 0
+        element = None
+        while element is None and times < threshold:
+            element = dictionary.get(timeslot)
+            timeslot = timeslot.replace(minute=timeslot.minute + 1)
+            times += 1
+
+        return element
 
     def get_extended_meter_data(self, pk, total_consumption, production_values, consumption_values, meter_value):
         """
@@ -342,14 +355,14 @@ class DownloadOverview(Overview):
         print("Consumption: %f" % consumption)
 
         for el in consumption_values:
-            saved_time = el['saved_time']
-            value = el['value']
+            saved_time = el
+            value = consumption_values[el]
 
             coeff = value / total_consumption[saved_time]
-            for key in production_values.keys():
-                production_value = list(filter(lambda x: x['saved_time'] == saved_time, production_values[key]))
-                if len(production_value) > 0:
-                    production_parts[key] += coeff * production_value[0]['value']
+            for meter_id in production_values.keys():
+                production_value = self.get_similar_time(production_values.get(meter_id), saved_time)
+                if production_value is not None:
+                    production_parts[meter_id] += coeff * production_value
 
         part_distributor = consumption - reduce(lambda x, y: x - y, production_parts.values())
         result = {'Vormonat': last_month_value, 'Verbrauch': consumption, 'Anteil Versorger': part_distributor}
@@ -359,4 +372,3 @@ class DownloadOverview(Overview):
 
         print(production_parts)
         return result
-
