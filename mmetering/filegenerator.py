@@ -25,7 +25,8 @@ class CSV(File):
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="mmetering%s.csv"' % str(datetime.today())
 
-        data = DownloadOverview(self._request.GET).get_data()
+        monthname, import_data, export_data = DownloadOverview(self._request.GET).get_data()
+        data = import_data + [{}] + export_data
 
         writer = csv.writer(response)
         writer.writerow(['SN', 'Bezug', 'Zaehlerstand', 'Uhrzeit'])
@@ -44,7 +45,7 @@ class XLS(File):
 
     def get_file(self):
         output = io.BytesIO()
-        import_data, export_data = DownloadOverview(self._request.GET).get_data()
+        monthname, import_data, export_data = DownloadOverview(self._request.GET).get_data()
         data = import_data + [{}] + export_data
 
         assert len(import_data) > 0
@@ -55,8 +56,8 @@ class XLS(File):
 
         bold = workbook.add_format({'bold': True})
         dateformat = workbook.add_format({'num_format': 'dd.mm.yy hh:mm'})
-        # Widen the first column in order to make the text clearer.
-        worksheet.set_column(0, 9, width=15)
+        # Widen the columns in order to make the text clearer.
+        worksheet.set_column(1, 10, width=15)
 
         longest_header = max(import_data, key=len)
         table_headers = list(longest_header.keys())
@@ -68,7 +69,7 @@ class XLS(File):
             row += 2  # move everything two rows downwards
             column = 0
             for key, value in record.items():
-                if key == 'Uhrzeit':
+                if key == 'Uhrzeit' or key == 'Uhrzeit Vormonat':
                     # TODO: make that more dynamically
                     worksheet.write(row, column, value, dateformat)
                 else:
@@ -79,8 +80,9 @@ class XLS(File):
         workbook.close()
         output.seek(0)
 
+        filename = 'mmetering_%s%s.xlsx' % (monthname, datetime.today().strftime('%Y%m%d%H%M%S'))
         response = HttpResponse(output.read(),
                                 content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-        response['Content-Disposition'] = 'attachment; filename="mmetering%s.xlsx"' % str(datetime.today())
+        response['Content-Disposition'] = 'attachment; filename="%s"' % filename
 
         return response

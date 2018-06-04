@@ -269,9 +269,6 @@ class DownloadOverview(Overview):
                     production[flat] = DownloadOverview.get_consumption(flat, self.end[0])
                 export_values.append(value)
 
-        print("Total consumption-meters in list: %d" % len(consumption))
-        print("Export meters: %d" % len(export_values))
-
         # Calculate the total consumption for each timeslot
         total_consumption = defaultdict(float)
         for flat in consumption:
@@ -288,7 +285,7 @@ class DownloadOverview(Overview):
             except KeyError:
                 logger.info('No data')
 
-        return import_values, export_values
+        return self.end[0].strftime('%b'), import_values, export_values
 
     @staticmethod
     def get_next_value(meter_pk, saved_time):
@@ -313,8 +310,8 @@ class DownloadOverview(Overview):
             for i in range(0, len(time_series) - 1):
                 value = time_series[i]
                 delta_value = time_series[i+1]
-                # TODO: Check for NoneType
-                consumption_series[delta_value['saved_time']] = delta_value['value'] - value['value']
+                if value is not None and delta_value is not None:
+                    consumption_series[delta_value['saved_time']] = delta_value['value'] - value['value']
 
             # Remove the last element
             time_series.pop()
@@ -347,8 +344,10 @@ class DownloadOverview(Overview):
 
         if last_month_values.exists():
             last_month_value = last_month_values.first().value
+            last_month_saved_time = last_month_values.first().saved_time
         else:
             last_month_value = 0
+            last_month_saved_time = DownloadOverview.NO_DATA
 
         production_parts = dict.fromkeys(production_values, 0.0)
         consumption = meter_value - last_month_value
@@ -373,8 +372,7 @@ class DownloadOverview(Overview):
                     if production_value is not None:
                         if specific_total_production > specific_total_consumption:
                             # if all export meters produce more than all others consume
-                            # ignore the surplus.
-                            # WENN(totalprod>totalcons; (meter_value/totalprod)*totalcons;meter_value)
+                            # then ignore the surplus.
                             production_value = (production_value/specific_total_production) * specific_total_consumption
 
                         production_parts[meter_id] += coeff * production_value
@@ -383,10 +381,8 @@ class DownloadOverview(Overview):
         for val in production_parts.values():
             part_distributor -= val
 
-        # assert 0 <= sum(production_parts.values()) <= consumption
-        # assert part_distributor >= 0
-
-        result = {'Vormonat': last_month_value, 'Verbrauch': consumption, 'Anteil Versorger': part_distributor}
+        result = {'Vormonat': last_month_value, 'Uhrzeit Vormonat': last_month_saved_time,
+                  'Verbrauch': consumption, 'Anteil Versorger': part_distributor}
         for key in production_parts.keys():
             name = Flat.objects.get(pk=key).name
             result[name] = production_parts[key]
