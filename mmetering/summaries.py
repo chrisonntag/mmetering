@@ -357,18 +357,38 @@ class DownloadOverview(Overview):
         for el in consumption_values:
             saved_time = el
             value = consumption_values[el]
+            specific_total_consumption = self.get_similar_time(total_consumption, saved_time)
+            specific_total_production = 0.0
 
-            coeff = value / total_consumption[saved_time]
             for meter_id in production_values.keys():
-                production_value = self.get_similar_time(production_values.get(meter_id), saved_time)
-                if production_value is not None:
-                    production_parts[meter_id] += coeff * production_value
+                val = self.get_similar_time(production_values[meter_id], saved_time)
+                if val is not None:
+                    specific_total_production += val
 
-        part_distributor = consumption - reduce(lambda x, y: x - y, production_parts.values())
+            if specific_total_consumption is not None:
+                coeff = value / specific_total_consumption
+                for meter_id in production_values.keys():
+                    production_value = self.get_similar_time(production_values.get(meter_id), saved_time)
+
+                    if production_value is not None:
+                        if specific_total_production > specific_total_consumption:
+                            # if all export meters produce more than all others consume
+                            # ignore the surplus.
+                            # WENN(totalprod>totalcons; (meter_value/totalprod)*totalcons;meter_value)
+                            production_value = (production_value/specific_total_production) * specific_total_consumption
+
+                        production_parts[meter_id] += coeff * production_value
+
+        part_distributor = consumption
+        for val in production_parts.values():
+            part_distributor -= val
+
+        # assert 0 <= sum(production_parts.values()) <= consumption
+        # assert part_distributor >= 0
+
         result = {'Vormonat': last_month_value, 'Verbrauch': consumption, 'Anteil Versorger': part_distributor}
         for key in production_parts.keys():
             name = Flat.objects.get(pk=key).name
             result[name] = production_parts[key]
 
-        print(production_parts)
         return result

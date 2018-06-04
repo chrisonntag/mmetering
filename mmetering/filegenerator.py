@@ -50,11 +50,6 @@ class XLS(File):
         assert len(import_data) > 0
         assert len(export_data) > 0
 
-        print("Import data:")
-        print(import_data)
-        print("Export data:")
-        print(export_data)
-
         workbook = xlsxwriter.Workbook(output, {'in_memory': True})
         worksheet = workbook.add_worksheet('Abrechnung')
 
@@ -63,14 +58,8 @@ class XLS(File):
         # Widen the first column in order to make the text clearer.
         worksheet.set_column(0, 9, width=15)
 
-        # TODO: get headers from import_data dictionaries
         longest_header = max(import_data, key=len)
         table_headers = list(longest_header.keys())
-        """
-        [('PK', ''), ('SN', ''), ('Bezug', ''), ('Zaehlerstand', 'kWh'), ('Uhrzeit', ''),
-        ('Gesamtverbrauch', 'kWh'), ('Anteil Versorger', 'kWh'), ('Anteil PV', 'kWh'),
-        ('Anteil BHKW', 'kWh'), ('Vormonat', 'kWh')]
-        """
 
         for i, header in enumerate(table_headers):
             worksheet.write(0, i, header, bold)
