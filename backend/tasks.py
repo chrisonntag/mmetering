@@ -22,6 +22,7 @@ def save_meter_data_task():
     logger.debug(saved_meters)
 
 
+# TODO: Change mail send date to the first of a month
 @periodic_task(
     run_every=(crontab(0, 0, day_of_month='2')),
     name="send_meter_data_email_task",

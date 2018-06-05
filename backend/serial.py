@@ -6,15 +6,19 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# TODO: Refactor method naming and docstring style
 
 def save_meter_data():
     """
     Converts database objects into virtual meter
     objects (see EastronSDM630 class)
     """
+    # TODO: Don't query meters, but get active meters for each flat
     import_meters = get_meter_objects('IM')
     export_meters = get_meter_objects('EX')
 
+    # TODO: Catch SerialException here if port is busy and/or not available (maybe send mail)
+    # TODO: Check other ports (current mode is that port is specified in my.cnf)
     import_meter_objects = [EastronSDM630(id, address, start, end, 'IM') for id, address, start, end in import_meters]
     export_meter_objects = [EastronSDM630(id, address, start, end, 'EX') for id, address, start, end in export_meters]
 
@@ -81,5 +85,7 @@ def load_data(objects):
         logger.debug("%s: Got %s on address %d (ID %d)" %
                      (datetime.today(), str(value), meter.get_address(), meter.get_id()))
 
+        # TODO: Catch IOError here if communication is not possible (no answer)
         if value is not None:
+            # TODO: Maybe set datetime.minute hard in order to prevent deviations (check summary workaround)
             save_value(meter.get_id(), datetime.today().replace(microsecond=0, second=0), round(value * 1000) / 1000.0)

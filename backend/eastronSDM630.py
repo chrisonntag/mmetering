@@ -12,6 +12,8 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+# TODO: Add docstrings
+# TODO: Keep this class as minimal as possible
 class EastronSDM630(minimalmodbus.Instrument):
     """
     Instrument class for the Eastron SDM630 modbus meter.
@@ -26,6 +28,7 @@ class EastronSDM630(minimalmodbus.Instrument):
 
         if settings.PRODUCTION:
             # port name, slave address (in decimal)
+            # TODO: Raises SerialException
             minimalmodbus.Instrument.__init__(self, MODBUS_PORT, address)
             self.serial.timeout = 1.0  # sec
 
@@ -51,11 +54,13 @@ class EastronSDM630(minimalmodbus.Instrument):
         return self.get_register(hexc, 4, length)
 
     def get_register(self, hexc, code, length):
+        # TODO: Implement best practice retry method
         try:
             return self.read_float(int(hexc, 16), functioncode=code, numberOfRegisters=length)
         except (IOError, OSError, ValueError):
             pass
         except SerialException as e:
+            # TODO: Check at __init__
             logger.error("The used serial port is not available:\n%s" % str(e), exc_info=True)
         except RuntimeError:
             logger.error(
