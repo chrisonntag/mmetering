@@ -222,6 +222,13 @@ class DownloadOverview(Overview):
     NO_DATA = 'keine Daten'
 
     def get_data(self):
+        """Cycles through all flats and its registered meters in order to get
+        meter data for each flat.
+
+        Returns:
+            The requested month and two lists of dictionaries containing key-value pairs as initialized
+            in the first for-loop and expanded by get_extended_meter_data.
+        """
         flats = [x.pk for x in Flat.objects.all().order_by('name')]
         import_values = []
         export_values = []
@@ -279,23 +286,45 @@ class DownloadOverview(Overview):
         for i in range(0, len(import_values)):
             pk = import_values[i]['ID']
             meter_value = import_values[i]['Zaehlerstand']
-            # TODO: fix this
+            # TODO: fix program control through exception handling
             try:
                 import_values[i].update(self.get_extended_meter_data(pk, total_consumption, production, consumption[pk], meter_value))
             except KeyError:
-                logger.info('No data')
+                logger.warning('No data available.')
 
         return self.end[0].strftime('%b'), import_values, export_values
 
     @staticmethod
-    def get_next_value(meter_pk, saved_time):
-        next_value = MeterData.objects\
-            .filter(meter__flat__pk=meter_pk, saved_time=saved_time + timedelta(minutes=15)).values('saved_time', 'value')
+    def get_next_value(meter_pk, saved_time, delta=timedelta(minutes=15)):
+        """Queries the temporal successor of a meter data point.
+
+        Args:
+            meter_pk: The meters private key.
+            saved_time: The wanted time as a datetime object.
+            delta: A timedelta object defining what a successor is.
+
+        Returns:
+            The temporal successor as a MeterData object.
+        """
+        next_value = MeterData.objects.filter(
+            meter__flat__pk=meter_pk,
+            saved_time=saved_time + delta
+        ).values('saved_time', 'value')
+
         if len(next_value) > 0:
             return next_value[0]
 
     @staticmethod
     def get_consumption(meter_pk, timerange):
+        """Calculates the consumption based on meter values for a given meter.
+
+        Args:
+            meter_pk: The meters private key.
+            timerange: A datetime object where month and year will be extracted.
+
+        Returns:
+             A dictionary with datetime objects as keys and consumption values as values.
+        """
         time_series = MeterData.objects \
             .filter(meter__flat__pk=meter_pk, saved_time__year=timerange.year, saved_time__month=timerange.month) \
             .values('saved_time', 'value')
@@ -317,24 +346,46 @@ class DownloadOverview(Overview):
             time_series.pop()
             return consumption_series
 
-    def get_similar_time(self, dictionary, timeslot, threshold=2):
-        # TODO: Definitely fix this
+    @staticmethod
+    def get_value_at(dictionary, key: datetime, threshold=3):
+        """Timestamps of meter values can sometimes vary between a few minutes so that comparing
+        datetime objects might not always come to the same result. In order to solve that one can either
+        set a fixed datetime for all meter values queried at the same time slot (quarter-hour) or check
+        multiple keys. This method does the latter.
+
+        Args:
+            dictionary: The dictionary where we want values from.
+            key: The key to look for.
+            threshold: A limited region.
+
+        Returns:
+            The value ´near´ (according to the :param threshold) the :param key.
+        """
+        # TODO: Check solving strategies as described in docstring.
         times = 0
         element = None
         while element is None and times < threshold:
-            element = dictionary.get(timeslot)
-            timeslot = timeslot.replace(minute=timeslot.minute + 1)
+            element = dictionary.get(key)
+            key = key.replace(minute=key.minute + 1)
             times += 1
 
         return element
 
     def get_extended_meter_data(self, pk, total_consumption, production_values, consumption_values, meter_value):
-        """
-        Gathers further information for a given flat which
-        is not contained in a MeterData object.
+        """Gathers further information for a given flat not contained in a
+        regular MeterData object.
 
-        :param pk: The pk of the flat.
-        :return: A 5-tuple.
+        Args:
+            pk: The private key of the desired flat.
+            total_consumption: A dictionary containing the total consumption of all meters like {datetime: float}.
+            production_values: A dictionary containing the production values for each
+            export flat like {pk: {datetime: float}}.
+            consumption_values: A dictionary containing the consumption values of the flat with
+            private key :param pk like {datetime: float}.
+            meter_value: The meter value of the flat with private key :param pk.
+
+        Returns:
+            A dictionary with human-readable keys and corresponding values.
         """
         last_month = self.end[0].replace(day=1) - timedelta(days=1)
         last_month_values = MeterData.objects.filter(
@@ -351,23 +402,23 @@ class DownloadOverview(Overview):
 
         production_parts = dict.fromkeys(production_values, 0.0)
         consumption = meter_value - last_month_value
-        print("Consumption: %f" % consumption)
+        logger.info("Consumption: %f" % consumption)
 
         for el in consumption_values:
             saved_time = el
             value = consumption_values[el]
-            specific_total_consumption = self.get_similar_time(total_consumption, saved_time)
+            specific_total_consumption = self.get_value_at(total_consumption, saved_time)
             specific_total_production = 0.0
 
             for meter_id in production_values.keys():
-                val = self.get_similar_time(production_values[meter_id], saved_time)
+                val = self.get_value_at(production_values[meter_id], saved_time)
                 if val is not None:
                     specific_total_production += val
 
             if specific_total_consumption is not None:
                 coeff = value / specific_total_consumption
                 for meter_id in production_values.keys():
-                    production_value = self.get_similar_time(production_values.get(meter_id), saved_time)
+                    production_value = self.get_value_at(production_values.get(meter_id), saved_time)
 
                     if production_value is not None:
                         if specific_total_production > specific_total_consumption:

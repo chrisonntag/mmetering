@@ -21,17 +21,23 @@ class File:
 
 class CSV(File):
     def get_file(self):
-        # Create the HttpResponse object with the appropriate CSV header.
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="mmetering%s.csv"' % str(datetime.today())
-
         monthname, import_data, export_data = DownloadOverview(self._request.GET).get_data()
-        data = import_data + [{}] + export_data
+        data = import_data + export_data
+
+        # Create the HttpResponse object with the appropriate CSV header.
+        filename = 'mmetering_%s%s.csv' % (monthname, datetime.today().strftime('%Y%m%d%H%M%S'))
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="%s"' % filename
 
         writer = csv.writer(response)
-        writer.writerow(['SN', 'Bezug', 'Zaehlerstand', 'Uhrzeit'])
-        for i in range(0, len(data)):
-            writer.writerow(data[i])
+
+        longest_header = max(import_data, key=len)
+        table_headers = list(longest_header.keys())
+
+        writer.writerow(table_headers)
+
+        for record in data:
+            writer.writerow(list(record.values()))
 
         return response
 
@@ -47,9 +53,6 @@ class XLS(File):
         output = io.BytesIO()
         monthname, import_data, export_data = DownloadOverview(self._request.GET).get_data()
         data = import_data + [{}] + export_data
-
-        assert len(import_data) > 0
-        assert len(export_data) > 0
 
         workbook = xlsxwriter.Workbook(output, {'in_memory': True})
         worksheet = workbook.add_worksheet('Abrechnung')
@@ -69,8 +72,7 @@ class XLS(File):
             row += 2  # move everything two rows downwards
             column = 0
             for key, value in record.items():
-                if key == 'Uhrzeit' or key == 'Uhrzeit Vormonat':
-                    # TODO: make that more dynamically
+                if isinstance(value, datetime):
                     worksheet.write(row, column, value, dateformat)
                 else:
                     worksheet.write(row, column, value)
