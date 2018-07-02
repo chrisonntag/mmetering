@@ -361,7 +361,7 @@ class DownloadOverview(Overview):
         Returns:
             The value ´near´ (according to the :param threshold) the :param key.
         """
-        # TODO: Check solving strategies as described in docstring.
+        # TODO: Check deprecation since datetime is set on the first query of meter data now.
         times = 0
         element = None
         while element is None and times < threshold:
