@@ -9,7 +9,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-MAX_RETRY = 6
 FUNC_CODE_INPUT_REG = 4
 FUNC_CODE_HOLDING_REG = 3
 
@@ -119,8 +118,7 @@ class EastronSDM630(minimalmodbus.Instrument):
         Raises:
             ValueError, TypeError, IOError
         """
-        # In order to avoid overlapping messages, wait 2.0ms as described above.
-        # TODO: Retry with MAX_RETRIES until we have something
+        # In order to avoid overlapping messages, wait 2ms as described above.
         sleep(0.002)
         return self.read_float(int(hexc, 16), functioncode=code, numberOfRegisters=length)
 

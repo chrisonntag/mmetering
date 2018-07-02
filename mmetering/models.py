@@ -1,6 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.db import models
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 
 class Flat(models.Model):
@@ -34,6 +34,10 @@ class Meter(models.Model):
 
     def __str__(self):
         return 'Zähler in ' + self.flat.name
+
+    def set_start_datetime(self):
+        self.start_datetime = datetime.today()
+        self.save()
 
     def clean(self):
         error_dict = {}
