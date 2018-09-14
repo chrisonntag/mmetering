@@ -4,7 +4,6 @@
 my.cnf
 .idea/
 mmetering/migrations
-docker-compose.yml
 .data/
 /mmetering_server/settings/production.py
 evcs/
