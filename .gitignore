@@ -9,6 +9,9 @@ mmetering/migrations
 evcs/
 mmio/
 
+### Secrets ###
+/mysql_conf.txt
+
 ### Celery ###
 celerybeat-schedule.db
 celerybeat.pid
