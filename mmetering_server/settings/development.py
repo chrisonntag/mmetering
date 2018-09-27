@@ -12,25 +12,27 @@ SECRET_KEY = 'pcawgi2s$v5k+%r4uzti&bqj%fe1g+o=7^0bwq-hdav-h+)5)6'
 
 # Application definition
 INSTALLED_APPS = [
-    'mmetering',
-    'backend',
+    'django.contrib.contenttypes',
     'django.contrib.admin',
     'django.contrib.auth',
-    'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'celery',
+    'mmetering.apps.MmeteringConfig',
+    'backend.apps.BackendConfig',
     'rest_framework',
 ]
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["0.0.0.0", "localhost", "127.0.0.1"]
 
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 
+# TODO: Maybe put database settings in default settings
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
