@@ -47,6 +47,7 @@ def save_meter_data():
             # TODO: Use tenacity in order to handle retries with MAX_RETRIES
             try:
                 if meter.flat.modus == 'IM':
+                    # TODO: Save L1, L2, L3 instead of total import
                     value = eastron.read_total_import()
                 else:
                     value = eastron.read_total_export()
