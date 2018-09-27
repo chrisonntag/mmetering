@@ -70,6 +70,20 @@ class EastronSDM630(minimalmodbus.Instrument):
         minimalmodbus.Instrument.__init__(self, portname, slaveaddress)
         self.serial.timeout = 0.5  # sec
 
+    def is_reachable(self):
+        """Reads the register with start address 1C which holds
+        the configured baud rate.
+
+        Returns:
+            True or False whether the meter is reachable or not.
+        """
+        try:
+            self.read_holding_register('1C', 2)
+        except OSError:
+            return False
+
+        return True
+
     def get_slaveaddress(self):
         return self.slaveaddress
 
