@@ -9,11 +9,6 @@ services:
     env_file: ./mysql_conf.txt
     volumes:
       - db_data:/var/lib/mysql
-    #environment:
-      #MYSQL_ROOT_PASSWORD: MMSj16
-      #MYSQL_PASSWORD: MMSj16
-      #MYSQL_USER: mmetering
-      #MYSQL_DATABASE: MMETERING
     networks:
       - main
   redis:
