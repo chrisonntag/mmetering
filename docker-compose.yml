@@ -21,9 +21,6 @@ services:
     build: .
     container_name: mmetering_django
     privileged: "true"
-    devices:
-      - "/dev/ttyUSB0:/dev/ttyUSB0"
-      - "/dev/ttyUSB1:/dev/ttyUSB1"
     command: bash -c "sleep 6 && python /mmetering-server/manage.py migrate --noinput"
     # TODO: Change to nginx/apache configuration in production
     command: bash -c "python /mmetering-server/manage.py runserver 0.0.0.0:8000"
@@ -46,9 +43,6 @@ services:
     build: .
     container_name: mmetering_celery
     privileged: "true"
-    devices:
-      - "/dev/ttyUSB0:/dev/ttyUSB0"
-      - "/dev/ttyUSB1:/dev/ttyUSB1"
     command: celery -A mmetering_server worker -l info
     restart: on-failure:5
     volumes:
@@ -65,9 +59,6 @@ services:
     build: .
     container_name: mmetering_celery_beat
     privileged: "true"
-    devices:
-      - "/dev/ttyUSB0:/dev/ttyUSB0"
-      - "/dev/ttyUSB1:/dev/ttyUSB1"
     command: celery -A mmetering_server beat --pidfile= -l info
     restart: on-failure:5
     volumes:
