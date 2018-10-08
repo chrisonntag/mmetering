@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 services:
   db:
@@ -20,6 +20,7 @@ services:
   web:
     build: .
     container_name: mmetering_django
+    privileged: "true"
     command: bash -c "sleep 6 && python /mmetering-server/manage.py migrate --noinput"
     # TODO: Change to nginx/apache configuration in production
     command: bash -c "python /mmetering-server/manage.py runserver 0.0.0.0:8000"
@@ -27,6 +28,7 @@ services:
       - .:/mmetering-server
       - /var/log/mmetering:/var/log/mmetering
       - ~/mmetering-data:/mmetering-data
+      - /dev:/dev
     ports:
       - "8000:8000"
     networks:
@@ -40,6 +42,7 @@ services:
   celery:
     build: .
     container_name: mmetering_celery
+    privileged: "true"
     command: celery -A mmetering_server worker -l info
     restart: on-failure:5
     volumes:
@@ -55,6 +58,7 @@ services:
   celery-beat:
     build: .
     container_name: mmetering_celery_beat
+    privileged: "true"
     command: celery -A mmetering_server beat --pidfile= -l info
     restart: on-failure:5
     volumes:
