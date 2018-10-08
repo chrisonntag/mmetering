@@ -86,6 +86,8 @@ LOGGING = {
             'class': 'logging.FileHandler',
             'filename': '/var/log/mmetering/mmetering.log',
             'formatter': 'standard',
+            'maxBytes': 1024,
+            'backupCount': 10,
         }
     },
     'loggers': {
@@ -96,14 +98,17 @@ LOGGING = {
         'backend': {
             'handlers': ['file', 'mail_admins'],
             'level': 'ERROR',
+            'propagate': True,
         },
         'mmetering': {
             'handlers': ['file', 'mail_admins'],
             'level': 'ERROR',
+            'propagate': True,
         },
         'mmio': {
             'handlers': ['file', 'mail_admins'],
             'level': 'ERROR',
+            'propagate': True,
         }
     }
 }
