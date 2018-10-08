@@ -60,7 +60,7 @@ def save_meter_data():
                 else:
                     meter_diagnose_str += ': not saved'
             except IOError:
-                logger.error('%s: Could not reach meter with address %d' % (datetime.today(), meter.addresse))
+                logger.exception('%s: Could not reach meter with address %d' % (datetime.today(), meter.addresse))
                 meter_diagnose_str += ': not saved (no communication)'
 
             diagnose_str += meter_diagnose_str + '\n'
