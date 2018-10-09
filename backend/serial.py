@@ -4,9 +4,10 @@ from backend.eastronSDM630 import EastronSDM630
 from mmetering.models import Meter, MeterData
 from mmetering_server.settings.defaults import MODBUS_PORT
 import serial.tools.list_ports
-import logging
+from celery.utils.log import get_task_logger
 
-logger = logging.getLogger(__name__)
+
+logger = get_task_logger(__name__)
 MAX_RETRY = 6
 PORTS_LIST = [port for port, desc, hwid in serial.tools.list_ports.grep('tty')]
 
@@ -33,7 +34,8 @@ def save_meter_data():
     diagnose_str = 'Requested devices on port %s:\n' % port
 
     if port == 0:
-        logger.error('Could not find a serial port with connected meters.')
+        diagnose_str = 'Could not find a serial port with connected meters.'
+        return diagnose_str
     else:
         # TODO: Don't query meters, but get active meters for each flat
         for meter in Meter.objects.filter(active=True):
@@ -65,7 +67,7 @@ def save_meter_data():
 
             diagnose_str += meter_diagnose_str + '\n'
 
-    return diagnose_str
+        return diagnose_str
 
 
 def choose_port(ports):

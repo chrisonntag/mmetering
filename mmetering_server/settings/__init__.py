@@ -1,7 +1,7 @@
 import os
 from .defaults import *
 
-if os.environ['MMETERING_PRODUCTION'] == 1:
+if os.environ.get('MMETERING_PRODUCTION') == '1':
     from .production import *
     PRODUCTION = True
 else:
