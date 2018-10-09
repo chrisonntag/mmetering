@@ -8,6 +8,7 @@ mmetering/migrations
 /mmetering_server/settings/production.py
 evcs/
 mmio/
+docker-compose.yml
 
 ### Secrets ###
 /mysql_conf.txt
