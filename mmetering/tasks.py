@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 from celery import task
 from celery.utils.log import get_task_logger
-
 from mmetering.emails import send_contact_email, send_system_email
 
 logger = get_task_logger(__name__)

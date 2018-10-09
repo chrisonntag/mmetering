@@ -31,6 +31,11 @@ def send_contact_email(name, email, message):
 
 
 def send_system_email(message):
+    """Sends a message to the admins, as defined by the ADMINS setting."""
+    if not settings.ADMINS:
+        return
+
+    recipients = [recipient[1] for recipient in settings.ADMINS]
     c = Context({'message': message})
 
     email_subject = render_to_string(
@@ -40,7 +45,7 @@ def send_system_email(message):
     # settings.DEFAULT_TO_EMAIL already is a list
     email = EmailMessage(
         email_subject, email_body, 'system@mmetering.chrisonntag.com',
-        settings.DEFAULT_TO_EMAIL, []
+        recipients, []
     )
 
     logger.info("MMetering System sent a mail.")
