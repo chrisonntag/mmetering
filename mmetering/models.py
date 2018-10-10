@@ -1,6 +1,5 @@
-from django.core.exceptions import ValidationError
 from django.db import models
-from datetime import timedelta, datetime
+from datetime import datetime
 
 
 class Flat(models.Model):
@@ -8,8 +7,16 @@ class Flat(models.Model):
         ('IM', 'Import'),
         ('EX', 'Export'),
     )
-    name = models.CharField(max_length=200, help_text="z.B. Wohnungsnummer", verbose_name="Beschreibung")
-    modus = models.CharField(default='IM', max_length=2, choices=MODE_TYPES)
+    name = models.CharField(
+        max_length=200,
+        help_text="z.B. Wohnungsnummer",
+        verbose_name="Beschreibung"
+    )
+    modus = models.CharField(
+        default='IM',
+        max_length=2,
+        choices=MODE_TYPES
+    )
 
     def __str__(self):
         return self.name
@@ -24,13 +31,14 @@ class Meter(models.Model):
     addresse = models.IntegerField(default=0, help_text="Addresse, auf der der Zähler erreichbar ist")
     seriennummer = models.CharField(max_length=45, help_text="Seriennummer (hinten auf Zähler)")
     init_datetime = models.DateTimeField(auto_now_add=True)
+    active = models.BooleanField(default=False, verbose_name="Aktivieren")
     start_datetime = models.DateTimeField(null=True,
                                           blank=True,
-                                          help_text="wird automatisch ausgefüllt", verbose_name="Laufzeit Start")
+                                          help_text="wird automatisch ausgefüllt",
+                                          verbose_name="Laufzeit Start")
     end_datetime = models.DateTimeField(null=True,
                                         blank=True,
                                         verbose_name="Laufzeit Ende")
-    active = models.BooleanField(default=False, verbose_name="Aktivieren")
 
     def __str__(self):
         return 'Zähler in ' + self.flat.name
@@ -38,21 +46,6 @@ class Meter(models.Model):
     def set_start_datetime(self):
         self.start_datetime = datetime.today()
         self.save()
-
-    def clean(self):
-        error_dict = {}
-        # Make sure expiry or start time cannot be in the past
-        """
-        if (self.start_datetime is not None and
-            (self.start_datetime <= datetime.datetime.today())):
-            error_dict['start_datetime'] = ValidationError('Die Startzeit darf nicht in der Vergangenheit liegen.')
-
-        if (self.end_datetime is not None and
-            (self.end_datetime <= datetime.datetime.today())):
-            error_dict['end_datetime'] = ValidationError('Die Endzeit darf nicht in der Vergangenheit liegen.')
-        """
-        if error_dict:
-            raise ValidationError(error_dict)
 
     class Meta:
         verbose_name = "Zähler"
@@ -71,7 +64,10 @@ class MeterData(models.Model):
         return self.meter.flat.modus
 
     def get_consumption(self, delta):
-        pre = MeterData.objects.filter(meter=self.meter, saved_time=self.saved_time - delta).exists()
+        pre = MeterData.objects.filter(
+            meter=self.meter,
+            saved_time=self.saved_time - delta
+        ).exists()
         if pre:
             pre_val = MeterData.objects.get(meter=self.meter, saved_time=self.saved_time - delta).value
             return self.value - pre_val
