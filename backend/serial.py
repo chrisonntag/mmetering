@@ -30,33 +30,48 @@ def save_meter_data():
         A string containing all queried meter ID's
     """
     port = choose_port(PORTS_LIST)
-    query_time = datetime.today()
+    query_time = datetime.today().replace(microsecond=0, second=0)
     diagnose_str = 'Requested devices on port %s:\n' % port
 
     if port == 0:
         diagnose_str = 'Could not find a serial port with connected meters.'
         return diagnose_str
     else:
-        # TODO: Don't query meters, but get active meters for each flat
         for meter in Meter.objects.filter(active=True):
             meter_diagnose_str = 'Slave %d, %s' % (meter.addresse, meter.flat.modus)
-            eastron = EastronSDM630(port, meter.addresse)
+            try:
+                eastron = EastronSDM630(port, meter.addresse)
+            except SerialException:
+                logger.error('Port %s not available on meter with address %d' % (port, meter.addresse))
+                continue
 
-            # TODO: Check process on how meters are being replaced
             if meter.start_datetime is None:
                 meter.set_start_datetime()
+
+            if meter.end_datetime <= query_time:
+                meter.deactivate()
 
             # TODO: Use tenacity in order to handle retries with MAX_RETRIES
             try:
                 if meter.flat.modus == 'IM':
-                    # TODO: Save L1, L2, L3 instead of total import
                     value = eastron.read_total_import()
+                    value_l1 = eastron.read_import_L1()
+                    value_l2 = eastron.read_import_L2()
+                    value_l3 = eastron.read_import_L3()
                 else:
                     value = eastron.read_total_export()
+                    value_l1 = eastron.read_export_L1()
+                    value_l2 = eastron.read_export_L2()
+                    value_l3 = eastron.read_export_L3()
 
-                saved_time = query_time.replace(microsecond=0, second=0)
-                value = round(value * 1000) / 1000.0
-                meter_data = MeterData(meter_id=meter.pk, saved_time=saved_time, value=value)
+                meter_data = MeterData(
+                    meter_id=meter.pk,
+                    saved_time=query_time,
+                    value=value,
+                    value_l1=value_l1,
+                    value_l2=value_l2,
+                    value_l3=value_l3
+                )
                 if meter_data.save():
                     meter_diagnose_str += ': saved'
                 else:
@@ -81,6 +96,6 @@ def choose_port(ports):
         except SerialException:
             logger.error('%s: Port %s not available on meter with address %d'
                          % (datetime.today(), port, meter.addresse))
-            break
+            continue
 
     return 0
