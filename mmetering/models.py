@@ -60,9 +60,9 @@ class MeterData(models.Model):
     meter = models.ForeignKey(Meter, on_delete=models.CASCADE)
     saved_time = models.DateTimeField(db_index=True)
     value = models.FloatField()
-    value_l1 = models.FloatField()
-    value_l2 = models.FloatField()
-    value_l3 = models.FloatField()
+    value_l1 = models.FloatField(null=True)
+    value_l2 = models.FloatField(null=True)
+    value_l3 = models.FloatField(null=True)
 
     def __str__(self):
         return "Datenwert für " + self.meter.flat.name
