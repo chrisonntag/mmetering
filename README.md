@@ -5,10 +5,6 @@ MMetering is a smart metering software built on Django and Celery.
 ## Table of Contents
 
 1. [Install](#install)
-    1. [MySQL](#mysql)
-    2. [Django](#django)
-    3. [Celery Workers](#celery)
-    4. [SMTP-Server](#smtp)
 2. [Setup](#setup)
 3. [Additional Information](#additional)
 4. [Appendix](#appendix)
