@@ -28,7 +28,3 @@ to =
 
 [variables]
 secretkey = <your-unique-key>
-
-[controlboard]
-address = <your-address>
-supply-threshold = <integer:percent>
