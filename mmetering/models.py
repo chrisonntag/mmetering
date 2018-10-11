@@ -22,14 +22,14 @@ class Flat(models.Model):
         return self.name
 
     class Meta:
-        verbose_name = "Wohnung"
-        verbose_name_plural = "Wohnungen"
+        verbose_name = "Bezug"
+        verbose_name_plural = "Bezüge"
 
 
 class Meter(models.Model):
-    flat = models.OneToOneField(Flat, verbose_name="Wohnung")
+    flat = models.OneToOneField(Flat, verbose_name="Bezug")
     addresse = models.IntegerField(default=0, help_text="Addresse, auf der der Zähler erreichbar ist")
-    seriennummer = models.CharField(max_length=45, help_text="Seriennummer (hinten auf Zähler)")
+    seriennummer = models.CharField(max_length=45, help_text="Seriennummer")
     init_datetime = models.DateTimeField(auto_now_add=True)
     active = models.BooleanField(default=False, verbose_name="Aktivieren")
     start_datetime = models.DateTimeField(null=True,
@@ -47,6 +47,10 @@ class Meter(models.Model):
         self.start_datetime = datetime.today()
         self.save()
 
+    def deactivate(self):
+        self.active = False
+        self.save()
+
     class Meta:
         verbose_name = "Zähler"
         verbose_name_plural = "Zähler"
@@ -56,6 +60,9 @@ class MeterData(models.Model):
     meter = models.ForeignKey(Meter, on_delete=models.CASCADE)
     saved_time = models.DateTimeField(db_index=True)
     value = models.FloatField()
+    value_l1 = models.FloatField()
+    value_l2 = models.FloatField()
+    value_l3 = models.FloatField()
 
     def __str__(self):
         return "Datenwert für " + self.meter.flat.name
