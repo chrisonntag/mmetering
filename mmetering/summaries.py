@@ -2,6 +2,9 @@ import logging
 from datetime import datetime, timedelta, date
 from django.db.models import Sum, Count
 from mmetering.models import Flat, Meter, MeterData, Activities
+from collections import defaultdict
+from itertools import chain
+from functools import reduce
 
 logger = logging.getLogger(__name__)
 
@@ -216,22 +219,223 @@ class DownloadOverview(Overview):
     """Derives from Overview and offers a ```get_data``` method in order
     to offer meter data values for the Download Sheet.
     """
+    NO_DATA = 'keine Daten'
+
     def get_data(self):
-        flats = [x.pk for x in Flat.objects.filter(modus='IM')]
-        latest_values = []
+        """Cycles through all flats and its registered meters in order to get
+        meter data for each flat.
+
+        Returns:
+            The requested month and two lists of dictionaries containing key-value pairs as initialized
+            in the first for-loop and expanded by get_extended_meter_data.
+        """
+        flats = [x.pk for x in Flat.objects.all().order_by('name')]
+        import_values = []
+        export_values = []
+        consumption = {}
+        production = {}
+
         for flat in flats:
+            flat_object = Flat.objects.get(pk=flat)
+            meter_data_object = MeterData.objects.filter(
+                    meter__flat__pk=flat,
+                    saved_time__year=self.end[0].year,
+                    saved_time__month=self.end[0].month
+            ).order_by('-pk')
+
+            value = {
+                'ID': DownloadOverview.NO_DATA,
+                'Bezug': DownloadOverview.NO_DATA,
+                'SN': DownloadOverview.NO_DATA,
+                'Zaehlerstand': DownloadOverview.NO_DATA,
+                'Uhrzeit': DownloadOverview.NO_DATA,
+            }
+
+            if meter_data_object.exists():
+                current_month_exists = True
+                meter_data_object = meter_data_object.first()
+                value = {
+                    'ID': meter_data_object.meter.flat.pk,
+                    'Bezug': meter_data_object.meter.flat.name,
+                    'SN': meter_data_object.meter.seriennummer,
+                    'Zaehlerstand': meter_data_object.value,
+                    'Uhrzeit': meter_data_object.saved_time,
+                }
+            else:
+                current_month_exists = False
+                flat_object = Flat.objects.get(pk=flat)
+                value['ID'] = flat
+                value['Bezug'] = flat_object.name
+
+            if flat_object.modus == 'IM':
+                if current_month_exists:
+                    consumption[flat] = DownloadOverview.get_consumption(flat, self.end[0])
+                import_values.append(value)
+            else:
+                if current_month_exists:
+                    production[flat] = DownloadOverview.get_consumption(flat, self.end[0])
+                export_values.append(value)
+
+        # Calculate the total consumption for each timeslot
+        total_consumption = defaultdict(float)
+        for flat in consumption:
+            for timeslot in consumption[flat]:
+                total_consumption[timeslot] += consumption[flat][timeslot]
+
+        # Extend import data
+        for i in range(0, len(import_values)):
+            pk = import_values[i]['ID']
+            meter_value = import_values[i]['Zaehlerstand']
+            # TODO: fix program control through exception handling
             try:
-                val = MeterData.objects.filter(
-                    meter__flat__pk=flat, saved_time__lte=self.end[0]
-                ).values_list(
-                    'meter__seriennummer',
-                    'meter__flat__name',
-                    'value',
-                    'saved_time'
-                ).order_by('-pk')[0]
+                import_values[i].update(self.get_extended_meter_data(pk, total_consumption, production, consumption[pk], meter_value))
+            except KeyError:
+                logger.warning('No data available.')
 
-                latest_values.append(val)
-            except IndexError:
-                logger.info('The requested meter has no values yet.')
+        return self.end[0].strftime('%b'), import_values, export_values
 
-        return latest_values
+    @staticmethod
+    def get_next_value(meter_pk, saved_time, delta=timedelta(minutes=15)):
+        """Queries the temporal successor of a meter data point.
+
+        Args:
+            meter_pk: The meters private key.
+            saved_time: The wanted time as a datetime object.
+            delta: A timedelta object defining what a successor is.
+
+        Returns:
+            The temporal successor as a MeterData object.
+        """
+        next_value = MeterData.objects.filter(
+            meter__flat__pk=meter_pk,
+            saved_time=saved_time + delta
+        ).values('saved_time', 'value')
+
+        if len(next_value) > 0:
+            return next_value[0]
+
+    @staticmethod
+    def get_consumption(meter_pk, timerange):
+        """Calculates the consumption based on meter values for a given meter.
+
+        Args:
+            meter_pk: The meters private key.
+            timerange: A datetime object where month and year will be extracted.
+
+        Returns:
+             A dictionary with datetime objects as keys and consumption values as values.
+        """
+        time_series = MeterData.objects \
+            .filter(meter__flat__pk=meter_pk, saved_time__year=timerange.year, saved_time__month=timerange.month) \
+            .values('saved_time', 'value')
+        time_series = list(time_series)
+        if len(time_series) > 0:
+            # Add the first element of the next month in order to get the consumption
+            last_item = time_series[len(time_series) - 1]
+            time_series.append(DownloadOverview.get_next_value(meter_pk, last_item['saved_time']))
+
+            consumption_series = dict()
+
+            for i in range(0, len(time_series) - 1):
+                value = time_series[i]
+                delta_value = time_series[i+1]
+                if value is not None and delta_value is not None:
+                    consumption_series[delta_value['saved_time']] = delta_value['value'] - value['value']
+
+            # Remove the last element
+            time_series.pop()
+            return consumption_series
+
+    @staticmethod
+    def get_value_at(dictionary, key: datetime, threshold=3):
+        """Timestamps of meter values can sometimes vary between a few minutes so that comparing
+        datetime objects might not always come to the same result. In order to solve that one can either
+        set a fixed datetime for all meter values queried at the same time slot (quarter-hour) or check
+        multiple keys. This method does the latter.
+
+        Args:
+            dictionary: The dictionary where we want values from.
+            key: The key to look for.
+            threshold: A limited region.
+
+        Returns:
+            The value ´near´ (according to the :param threshold) the :param key.
+        """
+        # TODO: Check deprecation since datetime is set on the first query of meter data now.
+        times = 0
+        element = None
+        while element is None and times < threshold:
+            element = dictionary.get(key)
+            key = key.replace(minute=key.minute + 1)
+            times += 1
+
+        return element
+
+    def get_extended_meter_data(self, pk, total_consumption, production_values, consumption_values, meter_value):
+        """Gathers further information for a given flat not contained in a
+        regular MeterData object.
+
+        Args:
+            pk: The private key of the desired flat.
+            total_consumption: A dictionary containing the total consumption of all meters like {datetime: float}.
+            production_values: A dictionary containing the production values for each
+            export flat like {pk: {datetime: float}}.
+            consumption_values: A dictionary containing the consumption values of the flat with
+            private key :param pk like {datetime: float}.
+            meter_value: The meter value of the flat with private key :param pk.
+
+        Returns:
+            A dictionary with human-readable keys and corresponding values.
+        """
+        last_month = self.end[0].replace(day=1) - timedelta(days=1)
+        last_month_values = MeterData.objects.filter(
+            meter__flat__pk=pk,
+            saved_time__month=last_month.month,
+            saved_time__year=last_month.year).order_by('-saved_time')
+
+        if last_month_values.exists():
+            last_month_value = last_month_values.first().value
+            last_month_saved_time = last_month_values.first().saved_time
+        else:
+            last_month_value = 0
+            last_month_saved_time = DownloadOverview.NO_DATA
+
+        production_parts = dict.fromkeys(production_values, 0.0)
+        consumption = meter_value - last_month_value
+        logger.info("Consumption: %f" % consumption)
+
+        for el in consumption_values:
+            saved_time = el
+            value = consumption_values[el]
+            specific_total_consumption = self.get_value_at(total_consumption, saved_time)
+            specific_total_production = 0.0
+
+            for meter_id in production_values.keys():
+                val = self.get_value_at(production_values[meter_id], saved_time)
+                if val is not None:
+                    specific_total_production += val
+
+            if specific_total_consumption is not None:
+                coeff = value / specific_total_consumption
+                for meter_id in production_values.keys():
+                    production_value = self.get_value_at(production_values.get(meter_id), saved_time)
+
+                    if production_value is not None:
+                        if specific_total_production > specific_total_consumption:
+                            # if all export meters produce more than all others consume
+                            # then ignore the surplus.
+                            production_value = (production_value/specific_total_production) * specific_total_consumption
+
+                        production_parts[meter_id] += coeff * production_value
+
+        part_distributor = consumption
+        for val in production_parts.values():
+            part_distributor -= val
+
+        result = {'Vormonat': last_month_value, 'Uhrzeit Vormonat': last_month_saved_time,
+                  'Verbrauch': consumption, 'Anteil Versorger': part_distributor}
+        for key in production_parts.keys():
+            name = Flat.objects.get(pk=key).name
+            result[name] = production_parts[key]
+
+        return result

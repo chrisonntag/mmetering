@@ -4,11 +4,14 @@
 my.cnf
 .idea/
 mmetering/migrations
-docker-compose.yml
 .data/
 /mmetering_server/settings/production.py
 evcs/
 mmio/
+docker-compose.yml
+
+### Secrets ###
+/mysql_conf.txt
 
 ### Celery ###
 celerybeat-schedule.db

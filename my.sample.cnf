@@ -12,9 +12,6 @@ password = <pass>
 default-character-set = utf8
 modbus-port = <portnameonpc>
 
-[status]
-production = false
-
 [mail]
 host = <host>
 user = <username>

@@ -1,5 +1,6 @@
 from .defaults import *
 import configparser
+import logging.config
 
 config = configparser.RawConfigParser()
 config.read(os.path.join(BASE_DIR, 'my.cnf'))
@@ -66,6 +67,8 @@ EMAIL_PORT = config.getint('mail', 'port')
 DEFAULT_FROM_EMAIL = config.get('mail', 'from')
 DEFAULT_TO_EMAIL = list(filter(lambda x: x is not "", config.get('mail', 'to').split("\n")))
 
+LOGLEVEL = os.environ.get('MMETERING_LOGLEVEL', 'WARNING').upper()
+LOGGING_CONFIG = None
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -78,32 +81,26 @@ LOGGING = {
         'mail_admins': {
             'level': 'ERROR',
             'class': 'django.utils.log.AdminEmailHandler',
-            'include_html': True,
+            'include_html': False,
             'formatter': 'standard',
         },
         'file': {
-            'level': 'INFO',
+            'level': 'DEBUG',
             'class': 'logging.FileHandler',
             'filename': '/var/log/mmetering/mmetering.log',
             'formatter': 'standard',
-        }
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'standard',
+        },
     },
     'loggers': {
         '': {
-            'handlers': ['file'],
-            'level': 'INFO',
+            'handlers': ['file', 'mail_admins', 'console'],
+            'level': LOGLEVEL,
         },
-        'backend': {
-            'handlers': ['file', 'mail_admins'],
-            'level': 'ERROR',
-        },
-        'mmetering': {
-            'handlers': ['file', 'mail_admins'],
-            'level': 'ERROR',
-        },
-        'mmio': {
-            'handlers': ['file', 'mail_admins'],
-            'level': 'ERROR',
-        }
     }
 }
+logging.config.dictConfig(LOGGING)

@@ -1,0 +1,93 @@
+version: "3"
+
+services:
+  db:
+    image: mysql:latest
+    container_name: mmetering_mysql
+    ports:
+      - "3306:3306"
+    env_file: ./mysql_conf.txt
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - main
+  redis:
+    image: "redis:alpine"
+    restart: always
+    container_name: mmetering_redis
+    networks:
+      - main
+  web:
+    build: .
+    container_name: mmetering_django
+    privileged: "true"
+    command: bash -c "sleep 6 && python /mmetering-server/manage.py migrate --noinput"
+    # TODO: Change to nginx/apache configuration in production
+    command: bash -c "python /mmetering-server/manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/mmetering-server
+      - /var/log/mmetering:/var/log/mmetering
+      - ~/mmetering-data:/mmetering-data
+      - /dev:/dev
+    ports:
+      - "8000:8000"
+    networks:
+      - main
+    links:
+      - redis
+    restart: on-failure:5
+    depends_on:
+      - db
+      - redis
+  celery:
+    build: .
+    container_name: mmetering_celery
+    privileged: "true"
+    command: celery -A mmetering_server worker -l info
+    restart: on-failure:5
+    volumes:
+      - .:/mmetering-server
+    networks:
+      - main
+    links:
+      - redis
+    depends_on:
+      - web
+      - db
+      - redis
+  celery-beat:
+    build: .
+    container_name: mmetering_celery_beat
+    privileged: "true"
+    command: celery -A mmetering_server beat --pidfile= -l info
+    restart: on-failure:5
+    volumes:
+      - .:/mmetering-server
+    networks:
+      - main
+    links:
+      - redis
+    depends_on:
+      - web
+      - db
+      - redis
+      - celery
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: mmetering_phpmyadmin
+    environment:
+      - PMA_ARBITRARY=1
+    restart: always
+    networks:
+      - main
+    ports:
+      - "8082:80"
+    volumes:
+      - /sessions
+
+volumes:
+  db_data:
+
+networks:
+  main:
+    driver: bridge
