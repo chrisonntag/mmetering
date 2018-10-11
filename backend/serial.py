@@ -88,6 +88,10 @@ def save_meter_data():
 def choose_port(ports):
     meter = Meter.objects.filter(active=True).first()
 
+    if meter is None:
+        logger.error('There are no active meters registered in the database.')
+        return 0
+
     for port in ports:
         try:
             eastron = EastronSDM630(port, meter.addresse)

@@ -18,14 +18,15 @@ DEBUG = False
 # Add plugins to INSTALLED_APPS here, more info regarding
 # apps on http://www.github.com/mmetering
 INSTALLED_APPS = [
-    'mmetering',
-    'backend',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'celery',
+    'mmetering.apps.MmeteringConfig',
+    'backend.apps.BackendConfig',
     'rest_framework',
 ]
 

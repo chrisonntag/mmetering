@@ -43,7 +43,7 @@ def save_meter_data_task():
     logger.setLevel(logging.DEBUG)
 
     saved_meters = save_meter_data()
-    logger.error(saved_meters)
+    logger.debug(saved_meters)
 
 
 # TODO: Change mail send date to the first of a month
