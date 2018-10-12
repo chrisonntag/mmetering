@@ -77,10 +77,8 @@ def save_meter_data():
                     value_l2=value_l2,
                     value_l3=value_l3
                 )
-                if meter_data.save():
-                    meter_diagnose_str += ': saved'
-                else:
-                    meter_diagnose_str += ': not saved'
+                meter_data.save()
+                meter_diagnose_str += ': saved'
             except IOError:
                 logger.exception('%s: Could not reach meter with address %d' % (datetime.today(), meter.addresse))
                 meter_diagnose_str += ': not saved (no communication)'
