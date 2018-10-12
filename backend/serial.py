@@ -31,7 +31,7 @@ def save_meter_data():
     """
     port = choose_port(PORTS_LIST)
     query_time = datetime.today().replace(microsecond=0, second=0)
-    failed_attempts = []
+    failed_attempts = dict()
     diagnose_str = 'Requested devices on port %s:\n' % port
 
     if port == 0:
@@ -62,7 +62,7 @@ def save_meter_data():
                 meter_diagnose_str += ': saved'
             else:
                 meter_diagnose_str += ': not saved (no communication)'
-                failed_attempts.append((meter, eastron, query_time, MAX_RETRY))
+                failed_attempts[meter.addresse] = [meter, eastron, query_time, MAX_RETRY]
 
             diagnose_str += meter_diagnose_str + '\n'
 
@@ -71,27 +71,27 @@ def save_meter_data():
 
 
 def handle_failed_attempts(failed_attempts):
-    if len(failed_attempts) == 0:
+    if failed_attempts == {}:
         return
     else:
         remove = []
 
-        for i in range(0, len(failed_attempts)):
-            meter, eastron, query_time, retry = failed_attempts[i]
+        for key in list(failed_attempts.keys()):
+            meter, eastron, query_time, retry = failed_attempts[key]
             if retry == 0:
-                remove.append([meter, eastron, query_time, retry])
+                remove.append(key)
                 continue
 
             logger.info('Retrying meter with address %d' % meter.addresse)
             if request_meter_data(meter, eastron, query_time):
                 logger.info('Success on meter with address %d' % meter.addresse)
-                remove.append([meter, eastron, query_time, retry])
+                remove.append(key)
             else:
-                failed_attempts[i][3] = retry - 1
+                failed_attempts[key][3] = retry - 1
                 logger.info('Remaining attempts for meter with address %d: %d' % (meter.addresse, retry - 1))
 
-        for el in remove:
-            failed_attempts.remove(el)
+        for index in remove:
+            del failed_attempts[index]
 
         handle_failed_attempts(failed_attempts)
 
