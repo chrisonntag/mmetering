@@ -45,11 +45,16 @@ def save_meter_data():
                 logger.error('Port %s not available on meter with address %d' % (port, meter.addresse))
                 continue
 
-            if meter.start_datetime is None:
+            if meter.start_datetime is not None:
+                if meter.start_datetime > query_time:
+                    # start_datetime is in the future, don't query this meter
+                    continue
+            else:
                 meter.set_start_datetime()
 
-            if meter.end_datetime <= query_time:
-                meter.deactivate()
+            if meter.end_datetime is not None:
+                if meter.end_datetime <= query_time:
+                    meter.deactivate()
 
             # TODO: Use tenacity in order to handle retries with MAX_RETRIES
             try:
