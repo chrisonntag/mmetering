@@ -8,7 +8,7 @@ from celery.utils.log import get_task_logger
 
 
 logger = get_task_logger(__name__)
-MAX_RETRY = 6
+MAX_RETRY = 4
 PORTS_LIST = [port for port, desc, hwid in serial.tools.list_ports.grep('tty')]
 
 if MODBUS_PORT in PORTS_LIST:
@@ -31,6 +31,7 @@ def save_meter_data():
     """
     port = choose_port(PORTS_LIST)
     query_time = datetime.today().replace(microsecond=0, second=0)
+    failed_attempts = []
     diagnose_str = 'Requested devices on port %s:\n' % port
 
     if port == 0:
@@ -57,35 +58,71 @@ def save_meter_data():
                     meter.deactivate()
 
             # TODO: Use tenacity in order to handle retries with MAX_RETRIES
-            try:
-                if meter.flat.modus == 'IM':
-                    value = eastron.read_total_import()
-                    value_l1 = eastron.read_import_L1()
-                    value_l2 = eastron.read_import_L2()
-                    value_l3 = eastron.read_import_L3()
-                else:
-                    value = eastron.read_total_export()
-                    value_l1 = eastron.read_export_L1()
-                    value_l2 = eastron.read_export_L2()
-                    value_l3 = eastron.read_export_L3()
-
-                meter_data = MeterData(
-                    meter_id=meter.pk,
-                    saved_time=query_time,
-                    value=value,
-                    value_l1=value_l1,
-                    value_l2=value_l2,
-                    value_l3=value_l3
-                )
-                meter_data.save()
+            if request_meter_data(meter, eastron, query_time):
                 meter_diagnose_str += ': saved'
-            except IOError:
-                logger.exception('%s: Could not reach meter with address %d' % (datetime.today(), meter.addresse))
+            else:
                 meter_diagnose_str += ': not saved (no communication)'
+                failed_attempts.append((meter, eastron, query_time, MAX_RETRY))
 
             diagnose_str += meter_diagnose_str + '\n'
 
+        handle_failed_attempts(failed_attempts)
         return diagnose_str
+
+
+def handle_failed_attempts(failed_attempts):
+    if len(failed_attempts) == 0:
+        return
+    else:
+        remove = []
+
+        for i in range(0, len(failed_attempts)):
+            meter, eastron, query_time, retry = failed_attempts[i]
+            if retry == 0:
+                remove.append([meter, eastron, query_time, retry])
+                continue
+
+            logger.info('Retrying meter with address %d' % meter.addresse)
+            if request_meter_data(meter, eastron, query_time):
+                logger.info('Success on meter with address %d' % meter.addresse)
+                remove.append([meter, eastron, query_time, retry])
+            else:
+                failed_attempts[i][3] = retry - 1
+                logger.info('Remaining attempts for meter with address %d: %d' % (meter.addresse, retry - 1))
+
+        for el in remove:
+            failed_attempts.remove(el)
+
+        handle_failed_attempts(failed_attempts)
+
+
+def request_meter_data(meter, eastron, query_time):
+    try:
+        if meter.flat.modus == 'IM':
+            value = eastron.read_total_import()
+            value_l1 = eastron.read_import_L1()
+            value_l2 = eastron.read_import_L2()
+            value_l3 = eastron.read_import_L3()
+        else:
+            value = eastron.read_total_export()
+            value_l1 = eastron.read_export_L1()
+            value_l2 = eastron.read_export_L2()
+            value_l3 = eastron.read_export_L3()
+
+        meter_data = MeterData(
+            meter_id=meter.pk,
+            saved_time=query_time,
+            value=value,
+            value_l1=value_l1,
+            value_l2=value_l2,
+            value_l3=value_l3
+        )
+        meter_data.save()
+    except IOError:
+        logger.exception('%s: Could not reach meter with address %d' % (datetime.today(), meter.addresse))
+        return False
+
+    return True
 
 
 def choose_port(ports):
