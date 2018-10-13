@@ -79,16 +79,18 @@ def handle_failed_attempts(failed_attempts):
         for key in list(failed_attempts.keys()):
             meter, eastron, query_time, retry = failed_attempts[key]
             if retry == 0:
+                logger.exception('%s: Could not reach meter with address %d after %d retries' %
+                                 (datetime.today(), meter.addresse, MAX_RETRY))
                 remove.append(key)
                 continue
 
             logger.info('Retrying meter with address %d' % meter.addresse)
             if request_meter_data(meter, eastron, query_time):
-                logger.info('Success on meter with address %d' % meter.addresse)
+                logger.debug('Success on meter with address %d' % meter.addresse)
                 remove.append(key)
             else:
                 failed_attempts[key][3] = retry - 1
-                logger.info('Remaining attempts for meter with address %d: %d' % (meter.addresse, retry - 1))
+                logger.debug('Remaining attempts for meter with address %d: %d' % (meter.addresse, retry - 1))
 
         for index in remove:
             del failed_attempts[index]
@@ -119,7 +121,6 @@ def request_meter_data(meter, eastron, query_time):
         )
         meter_data.save()
     except IOError:
-        logger.exception('%s: Could not reach meter with address %d' % (datetime.today(), meter.addresse))
         return False
 
     return True
