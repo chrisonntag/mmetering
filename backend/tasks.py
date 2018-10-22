@@ -12,7 +12,7 @@ def setup_logging(**kwargs):
       attach to this
     """
 
-    handler_names = ['mail_admins', 'file']
+    handler_names = ['mail_admins', 'file', 'console']
 
     import logging.config
     from django.conf import settings
@@ -25,6 +25,7 @@ def setup_logging(**kwargs):
         logger.addHandler(handler)
         logger.setLevel(handler.level)
         logger.propagate = False
+
 
 after_setup_task_logger.connect(setup_logging)
 
