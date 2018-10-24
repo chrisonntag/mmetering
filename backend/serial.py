@@ -4,11 +4,11 @@ from backend.eastronSDM630 import EastronSDM630
 from mmetering.models import Meter, MeterData
 from mmetering_server.settings.defaults import MODBUS_PORT
 import serial.tools.list_ports
-from celery.utils.log import get_task_logger
+import logging
 from tenacity import *
 
 
-logger = get_task_logger(__name__)
+logger = logging.getLogger(__name__)
 MAX_DELAY = 12  # in seconds per failed meter
 PORTS_LIST = [port for port, desc, hwid in serial.tools.list_ports.grep('tty')]
 
