@@ -5,10 +5,11 @@ from mmetering.models import Meter, MeterData
 from mmetering_server.settings.defaults import MODBUS_PORT
 import serial.tools.list_ports
 from celery.utils.log import get_task_logger
+from tenacity import *
 
 
 logger = get_task_logger(__name__)
-MAX_RETRY = 4
+MAX_DELAY = 12  # in seconds per failed meter
 PORTS_LIST = [port for port, desc, hwid in serial.tools.list_ports.grep('tty')]
 
 if MODBUS_PORT in PORTS_LIST:
@@ -31,7 +32,7 @@ def save_meter_data():
     """
     port = choose_port(PORTS_LIST)
     query_time = datetime.today().replace(microsecond=0, second=0)
-    failed_attempts = dict()
+    failed_attempts = []
     diagnose_str = 'Requested devices on port %s:\n' % port
 
     if port == 0:
@@ -57,45 +58,47 @@ def save_meter_data():
                 if meter.end_datetime <= query_time:
                     meter.deactivate()
 
-            # TODO: Use tenacity in order to handle retries with MAX_RETRIES
             if request_meter_data(meter, eastron, query_time):
                 meter_diagnose_str += ': saved'
             else:
                 meter_diagnose_str += ': not saved (no communication)'
-                failed_attempts[meter.addresse] = [meter, eastron, query_time, MAX_RETRY]
+                failed_attempts.append((meter, eastron, query_time))
 
             diagnose_str += meter_diagnose_str + '\n'
 
-        handle_failed_attempts(failed_attempts)
+        for meter, eastron, query_time in failed_attempts:
+            handle_failed_attempt(meter, eastron, query_time)
+
         return diagnose_str
 
 
-def handle_failed_attempts(failed_attempts):
-    if failed_attempts == {}:
-        return
-    else:
-        remove = []
+def is_false(value):
+    return value is False
 
-        for key in list(failed_attempts.keys()):
-            meter, eastron, query_time, retry = failed_attempts[key]
-            if retry == 0:
-                logger.exception('%s: Could not reach meter with address %d after %d retries' %
-                                 (datetime.today(), meter.addresse, MAX_RETRY))
-                remove.append(key)
-                continue
 
-            logger.info('Retrying meter with address %d' % meter.addresse)
-            if request_meter_data(meter, eastron, query_time):
-                logger.debug('Success on meter with address %d' % meter.addresse)
-                remove.append(key)
-            else:
-                failed_attempts[key][3] = retry - 1
-                logger.debug('Remaining attempts for meter with address %d: %d' % (meter.addresse, retry - 1))
+def meter_data_error_callback(retry_state):
+    """Return the result of the last call attempt"""
+    address = retry_state.args[0].addresse
+    attempt_number = retry_state.attempt_number
 
-        for index in remove:
-            del failed_attempts[index]
+    logger.exception('Could not reach meter with address %d after %d attempts' % (address, attempt_number))
 
-        handle_failed_attempts(failed_attempts)
+
+def meter_data_attempt_callback(retry_state):
+    address = retry_state.args[0].addresse
+    attempt_number = retry_state.attempt_number
+    logger.info("Retry meter with address %d, attempt %d" % (address, attempt_number))
+
+
+@retry(
+    retry=retry_if_result(is_false),
+    wait=wait_random_exponential(multiplier=0.2, max=8),
+    stop=stop_after_delay(MAX_DELAY),
+    before_sleep=meter_data_attempt_callback,
+    retry_error_callback=meter_data_error_callback,
+)
+def handle_failed_attempt(meter, eastron, query_time):
+    return request_meter_data(meter, eastron, query_time)
 
 
 def request_meter_data(meter, eastron, query_time):
