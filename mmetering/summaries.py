@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, date
 from django.db.models import Sum, Count
 from mmetering.models import Flat, Meter, MeterData, Activities
 from collections import defaultdict
+from calendar import monthrange
 from itertools import chain
 from functools import reduce
 
@@ -237,7 +238,7 @@ class DownloadOverview(Overview):
 
         for flat in flats:
             flat_object = Flat.objects.get(pk=flat)
-            meter_data_object = MeterData.objects.filter(
+            meter_data_objects = MeterData.objects.filter(
                     meter__flat__pk=flat,
                     saved_time__year=self.end[0].year,
                     saved_time__month=self.end[0].month
@@ -251,9 +252,9 @@ class DownloadOverview(Overview):
                 'Uhrzeit': DownloadOverview.NO_DATA,
             }
 
-            if meter_data_object.exists():
+            if meter_data_objects.exists():
                 current_month_exists = True
-                meter_data_object = meter_data_object.first()
+                meter_data_object = meter_data_objects.first()
                 value = {
                     'ID': meter_data_object.meter.flat.pk,
                     'Bezug': meter_data_object.meter.flat.name,
@@ -270,10 +271,12 @@ class DownloadOverview(Overview):
             if flat_object.modus == 'IM':
                 if current_month_exists:
                     consumption[flat] = DownloadOverview.get_consumption(flat, self.end[0])
+                    value['fehlende Werte'] = self.get_missing_data_points(meter_data_objects)
                 import_values.append(value)
             else:
                 if current_month_exists:
                     production[flat] = DownloadOverview.get_consumption(flat, self.end[0])
+                    value['fehlende Werte'] = self.get_missing_data_points(meter_data_objects)
                 export_values.append(value)
 
         # Calculate the total consumption for each timeslot
@@ -293,6 +296,19 @@ class DownloadOverview(Overview):
                 logger.warning('No data available.')
 
         return self.end[0].strftime('%b'), import_values, export_values
+
+    def get_missing_data_points(self, meter_data_objects):
+        """Gets the number of missing data points for the selected month
+
+        Args:
+            meter_data_objects: The meter data objects for the selected month.
+
+        Returns:
+            The number of missing values.
+        """
+        # Returns a tuple with weekday of first day of the month and the number of days in said month
+        days = monthrange(self.end[0].year, self.end[0].month)[1]
+        return days*24*4 - meter_data_objects.count()
 
     @staticmethod
     def get_next_value(meter_pk, saved_time, delta=timedelta(minutes=15)):
