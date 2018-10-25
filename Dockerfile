@@ -19,4 +19,6 @@ RUN pip install -r /mmetering-server/requirements.txt
 COPY . /mmetering-server/
 WORKDIR /mmetering-server/
 
+RUN python manage.py collectstatic --no-input
+
 EXPOSE 8000
