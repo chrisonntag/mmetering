@@ -55,6 +55,7 @@ DATABASES = {
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 # noinspection PyUnresolvedReferences
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 STATIC_URL = '/static/'
 
 # EMAIL SETTINGS
