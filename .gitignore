@@ -114,7 +114,8 @@ ENV/
 ### Django ###
 *.pyc
 db.sqlite3
-media
+media/
+static/
 
 
 ### PyCharm ###
