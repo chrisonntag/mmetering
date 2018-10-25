@@ -9,7 +9,7 @@ from tenacity import *
 
 
 logger = logging.getLogger(__name__)
-MAX_DELAY = 12  # in seconds per failed meter
+MAX_DELAY = 20  # in seconds per failed meter
 PORTS_LIST = [port for port, desc, hwid in serial.tools.list_ports.grep('tty')]
 
 if MODBUS_PORT in PORTS_LIST:
