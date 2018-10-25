@@ -21,24 +21,37 @@ services:
     build: .
     container_name: mmetering_django
     privileged: "true"
-    command: bash -c "sleep 6 && python /mmetering-server/manage.py migrate --noinput"
-    # TODO: Change to nginx/apache configuration in production
-    command: bash -c "python /mmetering-server/manage.py runserver 0.0.0.0:8000"
+    command: >
+      bash -c "sleep 6 && python /mmetering-server/manage.py migrate --noinput
+      && gunicorn mmetering_server.wsgi -b 0.0.0.0:8000 --workers 2"
     volumes:
       - .:/mmetering-server
       - /var/log/mmetering:/var/log/mmetering
       - ~/mmetering-data:/mmetering-data
       - /dev:/dev
-    ports:
-      - "8000:8000"
+      - static_volume:/mmetering-server/static
+      - media_volume:/mmetering-server/media
     networks:
       - main
+      - nginx
     links:
       - redis
     restart: on-failure:5
     depends_on:
       - db
       - redis
+  nginx:
+    image: nginx:alpine
+    volumes:
+    - ./nginx/conf.d:/etc/nginx/conf.d
+    - static_volume:/static
+    - media_volume:/media
+    ports:
+    - "8000:80" # Runs nginx on port 8000
+    networks:
+      - nginx
+    depends_on:
+    - web
   celery:
     build: .
     container_name: mmetering_celery
@@ -87,7 +100,11 @@ services:
 
 volumes:
   db_data:
+  static_volume:
+  media_volume:
 
 networks:
   main:
+    driver: bridge
+  nginx:
     driver: bridge
