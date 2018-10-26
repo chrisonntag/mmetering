@@ -123,7 +123,7 @@ def request_meter_data(meter, eastron, query_time):
             value_l3=value_l3
         )
         meter_data.save()
-    except IOError:
+    except (IOError, ValueError) as e:
         return False
 
     return True
@@ -139,11 +139,16 @@ def choose_port(ports):
     for port in ports:
         try:
             eastron = EastronSDM630(port, meter.addresse)
-            if eastron.is_reachable():
-                return port
         except SerialException:
             logger.error('%s: Port %s not available on meter with address %d'
                          % (datetime.today(), port, meter.addresse))
             continue
+
+        try:
+            if eastron.is_reachable():
+                return port
+        except (IOError, ValueError) as e:
+            logger.exception('Device with address %d on port %s does not respond. Could not choose appropriate port.'
+                             % (meter.addresse, port))
 
     return 0
