@@ -69,6 +69,12 @@ class Overview:
         except ValueError:
             logger.warning('Expected string format is DD.MM.YYYY. I got %s' % string)
 
+    def perdelta(self, start, end, delta):
+        curr = start
+        while curr <= end:
+            yield curr
+            curr += delta
+
     def get_data_range(self, start, end, mode):
         """Queries the summed up meter values per quarter-hour in a timespan.
 
@@ -80,21 +86,55 @@ class Overview:
                 'EX' for Export data.
 
         Returns:
-            A QuerySet of sum of pairs of value_sum and saved_time::
+            A list of sum of pairs of value_sum and saved_time::
                 [{
                     'value_sum': Sum of all meters of type ``mode`` in Wh,
                     'saved_time': Time of the values
                 }, ...
                 ]
         """
-        data = MeterData.objects.all() \
-            .filter(
-            meter__flat__modus__exact=mode,
-            saved_time__range=[start, end]
-        ) \
-            .values('saved_time') \
-            .annotate(value_sum=Sum('value') * 1000)  # displays data in Wh, DB values are in kWh
+        data = []
+        for slot in self.perdelta(start, end, timedelta(minutes=15)):
+            meter_data = MeterData.objects.filter(
+                meter__flat__modus__exact=mode,
+                saved_time=slot
+            ).values('value')
+            meter_data = [x['value'] * 1000 for x in meter_data]  # DB values are in kWh, output should be Wh (*1000)
+            value_sum = sum(meter_data)
+            if len(data) > 0:
+                if value_sum >= data[-1]['value_sum']:
+                    data.append({'saved_time': slot, 'value_sum': value_sum})
+                else:
+                    # Some values are missing in this timeslot.
+                    # Set value_sum to the last valid value in order to be displayed as 0.0 consumption.
+                    data.append({'saved_time': slot, 'value_sum': data[-1]['value_sum']})
+            else:
+                data.append({'saved_time': slot, 'value_sum': value_sum})
+
         return data
+
+    def get_consumption_range(self, data_range):
+        data = []
+        for i in range(1, len(data_range)):
+            slot_prev = data_range[i - 1]
+            slot = data_range[i]
+            data.append({'saved_time': slot['saved_time'], 'value_sum': slot['value_sum'] - slot_prev['value_sum']})
+
+        return data
+
+    def get_consumption_extremes(self, start, end, mode):
+        data_range = self.get_data_range(start, end, mode)
+        consumption = self.get_consumption_range(data_range)
+
+        # Remove 0.0 consumption values due to possibly missing values
+        consumption = [x for x in consumption if x['value_sum'] > 0]
+
+        if len(consumption) > 0:
+            sorted_consumption = sorted(consumption, key=lambda k: k['value_sum'])
+            return sorted_consumption[0], sorted_consumption[-1]
+        else:
+            dummy = {'saved_time': datetime(1997, 2, 4, 0, 0), 'value_sum': 0}
+            return dummy, dummy
 
     def get_total(self, until, mode):
         """Queries the total consumption/supply for each meter until a date.
@@ -191,6 +231,8 @@ class DataOverview(Overview):
     to pass data values to the frontend's Overview Panel.
     """
     def to_dict(self):
+        day_low, day_high = self.get_consumption_extremes(self.times['now-24'], self.times['now'], 'IM')
+
         return {
             'consumers': Flat.objects.filter(modus='IM').aggregate(num=Count('name')),
             'active_consumers': Meter.objects.filter(flat__modus='IM', active=True).aggregate(num=Count('addresse')),
@@ -202,10 +244,8 @@ class DataOverview(Overview):
                 'unit': 'MWh'
             },
             'time': {
-                'day_low': self.get_data_range(self.times['yesterday'], self.times['today'], 'IM').values(
-                    'saved_time').order_by('value_sum').first(),
-                'day_high': self.get_data_range(self.times['yesterday'], self.times['today'], 'IM').values(
-                    'saved_time').order_by('-value_sum').first(),
+                'day_low': day_low,
+                'day_high': day_high
             },
             'day': {
                 'current': self.get_day_consumption(self.times['today']),
