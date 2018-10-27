@@ -10,6 +10,21 @@ from functools import reduce
 logger = logging.getLogger(__name__)
 
 
+def round_time_quarterly(dt=None, roundTo=900):
+    """Round a datetime object to any time lapse in seconds
+
+    Args:
+        dt: datetime.datetime object, default now.
+        roundTo : Closest number of seconds to round to, default 15 minutes.
+    """
+    if dt is None:
+        dt = datetime.now()
+
+    seconds = (dt.replace(tzinfo=None) - dt.min).seconds
+    rounding = (seconds + roundTo / 2) // roundTo * roundTo
+    return dt + timedelta(0, rounding-seconds, -dt.microsecond)
+
+
 class Overview:
     """Offers database queries based on a given filter.
 
@@ -24,9 +39,9 @@ class Overview:
     def __init__(self, filters):
         self._filters = filters
         self.times = {
-            'now': datetime.now(),
-            'now-24': datetime.now() - timedelta(hours=24),
-            'now-1': datetime.now() - timedelta(hours=1),
+            'now': round_time_quarterly(datetime.now()),
+            'now-24': round_time_quarterly(datetime.now() - timedelta(hours=24)),
+            'now-1': round_time_quarterly(datetime.now() - timedelta(hours=1)),
             'today': date.today(),
             'yesterday': date.today() - timedelta(days=1),
             'current_week': (date.today() - timedelta(days=7), date.today()),
