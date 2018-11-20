@@ -52,7 +52,7 @@ def send_system_email(message):
     return email.send(fail_silently=False)
 
 
-def send_attachment_email():
+def send_data_email(last_month):
     config = configparser.RawConfigParser()
     config.read(os.path.join(settings.BASE_DIR, 'my.cnf'))
 
@@ -75,7 +75,7 @@ def send_attachment_email():
 
     # get the excel file until today as a HttpResponse object
     xls = XLS(None)
-    httpresponse = xls.get_file_until(datetime.today())
+    httpresponse = xls.get_file_until(last_month)
 
     user = getpass.getuser()
     savedir = "/home/%s/mmetering-data/" % user
@@ -83,7 +83,7 @@ def send_attachment_email():
         os.makedirs(savedir)
 
     # save the content of the response as a file
-    filename = "mmetering%s.xlsx" % str(datetime.today())
+    filename = "mmetering%s%s.xlsx" % (date.strftime("%b"), str(datetime.today()))
     with open(savedir + filename, 'wb') as excel_file:
         excel_file.write(httpresponse.content)
         excel_file.close()

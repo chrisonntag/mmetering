@@ -2,7 +2,8 @@ from celery.schedules import crontab
 from celery.task import periodic_task
 from celery.signals import after_setup_task_logger
 from backend.serial import save_meter_data
-from mmetering.emails import send_attachment_email
+from mmetering.emails import send_data_email
+from datetime import datetime, timedelta
 import logging
 
 
@@ -47,9 +48,8 @@ def save_meter_data_task():
     logger.debug(saved_meters)
 
 
-# TODO: Change mail send date to the first of a month
 @periodic_task(
-    run_every=(crontab(0, 0, day_of_month='2')),
+    run_every=(crontab(0, 1, day_of_month='1')),
     name="send_meter_data_email_task",
     ignore_result=True
 )
@@ -58,4 +58,7 @@ def send_meter_data_email_task():
     Sends an email with current meter data
     on the first of each month
     """
-    send_attachment_email()
+    # Subtract the current # of days in this month in order to query the last month.
+    today = datetime.today()
+    last_month = today - timedelta(days=today.day)
+    send_data_email(last_month)
