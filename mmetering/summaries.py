@@ -211,23 +211,20 @@ class Overview:
             True if the total of the self-produced energy supply is over
             the threshold, False otherwise or when no data is available.
         """
-        c_data = self.get_data_range(self.times['now-1'], datetime.today(), 'IM').order_by('-value_sum')[:2]
-        s_data = self.get_data_range(self.times['now-1'], datetime.today(), 'EX').order_by('-value_sum')[:2]
+        consumption_range = self.get_consumption_range(self.get_data_range(self.times['now-1'], datetime.today(), 'IM'))
+        supply_range = self.get_consumption_range(self.get_data_range(self.times['now-1'], datetime.today(), 'EX'))
 
-        if c_data and s_data:
-            try:
-                consumption = c_data[0].get('value_sum') - c_data[1].get('value_sum')
-                supply = s_data[0].get('value_sum') - s_data[1].get('value_sum')
-            except IndexError:
-                logging.warning('Not enough data for checking if own supply is over a threshold.')
-                return False
+        if len(consumption_range) > 0 and len(supply_range) > 0:
+            consumption = sorted(consumption_range, key=lambda k: k['saved_time'])[-1]['value_sum']
+            supply = sorted(supply_range, key=lambda k: k['saved_time'])[-1]['value_sum']
 
             if supply >= consumption * threshold:
                 return True
             else:
                 return False
-
-        return False
+        else:
+            logging.warning('Not enough data for checking if own supply is over %d percent.' % (threshold * 100))
+            return False
 
 
 class LoadProfileOverview(Overview):
