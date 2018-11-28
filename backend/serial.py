@@ -79,9 +79,13 @@ def is_false(value):
 def meter_data_error_callback(retry_state):
     """Return the result of the last call attempt"""
     address = retry_state.args[0].addresse
+    meter = retry_state.args[0]
     attempt_number = retry_state.attempt_number
 
-    logger.exception('Could not reach meter with address %d after %d attempts' % (address, attempt_number))
+    if meter.available:
+        meter.available = False
+        meter.save()
+        logger.exception('Could not reach meter with address %d after %d attempts' % (address, attempt_number))
 
 
 def meter_data_attempt_callback(retry_state):
@@ -125,6 +129,12 @@ def request_meter_data(meter, eastron, query_time):
         meter_data.save()
     except (IOError, ValueError) as e:
         return False
+
+    if meter.available is False:
+        meter.available = True
+        meter.save()
+        logger.exception('Meter with address %d is available again.' % meter.addresse)
+        # TODO: Send system mail instead of raising an exception that the meter is available again.
 
     return True
 

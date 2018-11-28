@@ -32,6 +32,7 @@ class Meter(models.Model):
     seriennummer = models.CharField(max_length=45, help_text="Seriennummer")
     init_datetime = models.DateTimeField(auto_now_add=True)
     active = models.BooleanField(default=False, verbose_name="Aktivieren")
+    available = models.BooleanField(default=True)
     start_datetime = models.DateTimeField(null=True,
                                           blank=True,
                                           help_text="wird automatisch ausgefüllt",
