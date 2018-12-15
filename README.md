@@ -32,6 +32,14 @@ Furthermore, add possibly wanted domains and the ```localhost``` to ```ALLOWED_D
 In order to receive mails from the mmetering system if errors occur, add yourself to ```ADMIN``` and/or
 ```MANAGERS```. Errors and Exceptions will be sent to ```ADMINS```, all other system mails to ```MANAGERS```.
 
+In order to let mmetering-server run under an own alias like ```mmetering```, add 
+
+```bash
+127.0.0.1   mmetering
+```
+
+to your ```/etc/hosts``` file and add ```mmetering``` to your ```ALLOWED_DOMAINS```.
+
 Check your docker and docker-compose version:
 
 ```bash
