@@ -30,7 +30,7 @@ def save_meter_data():
     Returns:
         A string containing all queried meter ID's
     """
-    port = choose_port(PORTS_LIST)
+    port = MODBUS_PORT  # choose_port(PORTS_LIST)
     query_time = datetime.today().replace(microsecond=0, second=0)
     failed_attempts = []
     diagnose_str = 'Requested devices on port %s:\n' % port
@@ -140,6 +140,7 @@ def request_meter_data(meter, eastron, query_time):
 
 
 def choose_port(ports):
+    # TODO: Rework this function. Don't send random requests over serial ports.
     meter = Meter.objects.filter(active=True).first()
 
     if meter is None:
