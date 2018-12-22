@@ -4,6 +4,7 @@ ENV PYTHONUNBUFFERED 1
 ENV CELERY_APP mmetering_server
 ENV MMETERING_PRODUCTION 1
 ENV DJANGO_SETTINGS_MODULE mmetering_server.settings
+ENV MMETERING_LOGLEVEL INFO
 
 RUN mkdir mmetering-server
 RUN mkdir mmetering-data
