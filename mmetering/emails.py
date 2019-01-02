@@ -83,7 +83,7 @@ def send_data_email(last_month):
         os.makedirs(savedir)
 
     # save the content of the response as a file
-    filename = "mmetering%s%s.xlsx" % (date.strftime("%b"), str(datetime.today()))
+    filename = "mmetering%s%s.xlsx" % (datetime.today().strftime("%b"), str(datetime.today()))
     with open(savedir + filename, 'wb') as excel_file:
         excel_file.write(httpresponse.content)
         excel_file.close()
