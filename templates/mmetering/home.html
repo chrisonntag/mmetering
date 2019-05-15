@@ -157,7 +157,7 @@
             <div class="col-md-4 col-sm-4 col-xs-12">
                 <div class="x_panel">
                     <div class="x_title">
-                        <h2>Aktivitäten
+                        <h2>Aktivit&auml;ten
                             <small>Sessions</small>
                         </h2>
                         <ul class="nav navbar-right panel_toolbox">
@@ -208,12 +208,54 @@
 
             <div class="col-md-8 col-sm-8 col-xs-12">
 
-                <div class="row">
+                <div class="x_panel">
+                    <div class="x_title">
+                        <h2>Z&auml;hler
+                            <small>Status</small>
+                        </h2>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="x_content">
+                       <table class="table table-hover">
+                          <thead>
+                            <tr>
+                                <th>Bezug</th>
+                                <th>Seriennummer</th>
+                                <th>Adresse</th>
+                                <th>Status</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {% for meter in meter_states %}
+                                <tr>
+                                    {% for key, value in meter.items %}
+                                        <td>
+                                            {% if key == 'available' %}
+                                                {% if value == True %}
+                                                    <i class="green">
+                                                        <i class="fa fa-circle"></i>
+                                                    </i>
+                                                {% else %}
+                                                    <i class="red">
+                                                        <i class="fa fa-circle"></i>
+                                                    </i>
+                                                {% endif %}
+                                            {% else %}
+                                                {{ value }}
+                                            {% endif %}
+                                        </td>
 
-
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                          </tbody>
+                        </table>
+                    </div>
                 </div>
+
             </div>
         </div>
+
     </div>
     <!-- /page content -->
 {% endblock %}

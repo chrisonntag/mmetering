@@ -264,6 +264,7 @@ class DataOverview(Overview):
                 'last': self.get_day_consumption(self.times['yesterday']),
                 'unit': 'kWh'
             },
+            'meter_states': Meter.objects.filter(active=True).order_by('addresse').values('flat__name', 'seriennummer', 'addresse', 'available'),
             'activities': Activities.objects.all().order_by('-timestamp')[:6]
         }
 
