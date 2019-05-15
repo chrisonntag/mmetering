@@ -27,7 +27,7 @@ class Flat(models.Model):
 
 
 class Meter(models.Model):
-    flat = models.OneToOneField(Flat, verbose_name="Bezug")
+    flat = models.ForeignKey(Flat, verbose_name="Bezug")
     addresse = models.IntegerField(default=0, help_text="Addresse, auf der der Zähler erreichbar ist")
     seriennummer = models.CharField(max_length=45, help_text="Seriennummer")
     init_datetime = models.DateTimeField(auto_now_add=True)
