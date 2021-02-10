@@ -79,7 +79,7 @@ class EastronSDM630(minimalmodbus.Instrument):
         """
         try:
             self.read_holding_register('1C', 2)
-        except OSError:
+        except (IOError, OSError, ValueError) as e:
             return False
 
         return True

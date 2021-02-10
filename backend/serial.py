@@ -9,7 +9,7 @@ from tenacity import *
 
 
 logger = logging.getLogger(__name__)
-MAX_DELAY = 20  # in seconds per failed meter
+MAX_DELAY = 10  # in seconds per failed meter
 PORTS_LIST = [port for port, desc, hwid in serial.tools.list_ports.grep('tty')]
 
 if MODBUS_PORT in PORTS_LIST:
@@ -30,12 +30,12 @@ def save_meter_data():
     Returns:
         A string containing all queried meter ID's
     """
-    port = MODBUS_PORT  # choose_port(PORTS_LIST)
+    port = choose_port(PORTS_LIST)
     query_time = datetime.today().replace(microsecond=0, second=0)
     failed_attempts = []
     diagnose_str = 'Requested devices on port %s:\n' % port
 
-    if port == 0:
+    if port is None:
         diagnose_str = 'Could not find a serial port with connected meters.'
         return diagnose_str
     else:
@@ -140,26 +140,20 @@ def request_meter_data(meter, eastron, query_time):
 
 
 def choose_port(ports):
-    # TODO: Rework this function. Don't send random requests over serial ports.
     meter = Meter.objects.filter(active=True).first()
 
     if meter is None:
         logger.error('There are no active meters registered in the database.')
-        return 0
+        return None
 
     for port in ports:
         try:
             eastron = EastronSDM630(port, meter.addresse)
-        except SerialException:
-            logger.error('%s: Port %s not available on meter with address %d'
-                         % (datetime.today(), port, meter.addresse))
-            continue
 
-        try:
             if eastron.is_reachable():
                 return port
-        except (IOError, ValueError) as e:
-            logger.exception('Device with address %d on port %s does not respond. Could not choose appropriate port.'
-                             % (meter.addresse, port))
+        except SerialException:
+            logger.error('Port %s not available.' % port)
+            continue
 
-    return 0
+    return None
