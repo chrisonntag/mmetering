@@ -3,26 +3,19 @@ from serial.serialutil import SerialException
 from backend.eastronSDM630 import EastronSDM630
 from mmetering.models import Meter, MeterData
 from mmetering_server.settings.defaults import MODBUS_PORT
-import serial.tools.list_ports
+from mmetering.tasks import send_system_email_task
 import logging
 from tenacity import *
 
 
 logger = logging.getLogger(__name__)
 MAX_DELAY = 10  # in seconds per failed meter
-PORTS_LIST = [port for port, desc, hwid in serial.tools.list_ports.grep('tty')]
-
-if MODBUS_PORT in PORTS_LIST:
-    # Move manually configured port to the front in
-    # order to test this one first.
-    PORTS_LIST.remove(MODBUS_PORT)
-    PORTS_LIST.insert(0, MODBUS_PORT)
 
 
 # TODO: Refactor method naming and docstring style
 def save_meter_data():
     """
-    Loops through a EastronSDM630 object list, checks wether a startdate
+    Loops through a EastronSDM630 object list, checks whether a startdate
     has already been set or not and requests the current Import/Export
     by calling the corresponding EastronSDM630 method.
     Gets called by the ```save_meter_data_task```.
@@ -30,7 +23,7 @@ def save_meter_data():
     Returns:
         A string containing all queried meter ID's
     """
-    port = choose_port(PORTS_LIST)
+    port = MODBUS_PORT
     query_time = datetime.today().replace(microsecond=0, second=0)
     failed_attempts = []
     diagnose_str = 'Requested devices on port %s:\n' % port
@@ -85,7 +78,10 @@ def meter_data_error_callback(retry_state):
     if meter.available:
         meter.available = False
         meter.save()
-        logger.exception('Could not reach meter with address %d after %d attempts' % (address, attempt_number))
+
+        msg = 'Could not reach meter with address %d after %d attempts' % (address, attempt_number)
+        send_system_email_task.delay(msg)
+        logger.warning(msg)
 
 
 def meter_data_attempt_callback(retry_state):
@@ -133,27 +129,9 @@ def request_meter_data(meter, eastron, query_time):
     if meter.available is False:
         meter.available = True
         meter.save()
-        logger.exception('Meter with address %d is available again.' % meter.addresse)
-        # TODO: Send system mail instead of raising an exception that the meter is available again.
+
+        msg = 'Meter with address %d is available again.' % meter.addresse
+        send_system_email_task.delay(msg)
+        logger.info(msg)
 
     return True
-
-
-def choose_port(ports):
-    meter = Meter.objects.filter(active=True).first()
-
-    if meter is None:
-        logger.error('There are no active meters registered in the database.')
-        return None
-
-    for port in ports:
-        try:
-            eastron = EastronSDM630(port, meter.addresse)
-
-            if eastron.is_reachable():
-                return port
-        except SerialException:
-            logger.error('Port %s not available.' % port)
-            continue
-
-    return None

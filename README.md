@@ -16,7 +16,17 @@ Clone this repository into the home folder of the target system with
 ```git clone https://github.com/chrisonntag/mmetering-server.git mmetering-server```.
 If you want to install further apps, clone them into the project folder as well.
 
-Rename ```my.sample.cnf``` to ```my.cnf``` and fill out all necessary values. Leave out the client section until
+Rename ```my.sample.cnf``` to ```my.cnf``` and fill out all necessary values. 
+Due to the fact, that Linux assigns port names in the order they respond on the bus, the exact port 
+name can change. Therefore, MMetering uses a symlink created per device in ```/dev/serial/by-id/```.
+This folder is mounted into the docker container (see ```docker-compose.yml```). Use the whole 
+path of the device for the modbus-port value, for example
+
+```
+/dev/serial/by-id/usb-FTDI_FT232R_USB_UART_A50285BI-if00-port0
+```
+
+Leave the client section blank until
 the database credentials will be set in the ```mysql_conf.txt``` file.
 
 Rename ```docker-compose-sample.yml``` to ```docker-compose.yml``` and follow possible instructions of

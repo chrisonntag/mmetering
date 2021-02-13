@@ -20,7 +20,6 @@ services:
   web:
     build: .
     container_name: mmetering_django
-    privileged: "true"
     command: >
       bash -c "sleep 6 && python /mmetering-server/manage.py migrate --noinput
       && gunicorn mmetering_server.wsgi -b 0.0.0.0:8000 --workers 2"
@@ -55,11 +54,14 @@ services:
   celery:
     build: .
     container_name: mmetering_celery
-    privileged: "true"
+    devices:
+      - /dev/ttyUSB0:/dev/ttyUSB0
+      - /dev/ttyUSB1:/dev/ttyUSB1
     command: celery -A mmetering_server worker -l info
     restart: on-failure:5
     volumes:
       - .:/mmetering-server
+      - /dev/serial/by-id/:/dev/serial/by-id
     networks:
       - main
     links:
@@ -71,11 +73,14 @@ services:
   celery-beat:
     build: .
     container_name: mmetering_celery_beat
-    privileged: "true"
+    devices:
+      - /dev/ttyUSB0:/dev/ttyUSB0
+      - /dev/ttyUSB1:/dev/ttyUSB1
     command: celery -A mmetering_server beat --pidfile= -l info
     restart: on-failure:5
     volumes:
       - .:/mmetering-server
+      - /dev/serial/by-id/:/dev/serial/by-id
     networks:
       - main
     links:
